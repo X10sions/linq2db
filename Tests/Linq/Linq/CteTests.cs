@@ -23,6 +23,7 @@ namespace Tests.Linq
 			TestProvName.AllFirebird,
 			TestProvName.AllPostgreSQL,
 			ProviderName.DB2,
+			ProviderName.DB2iSeries,
 			TestProvName.AllSQLite,
 			TestProvName.AllOracle,
 			TestProvName.AllMySqlWithCTE,
@@ -487,7 +488,7 @@ namespace Tests.Linq
 		}
 
 		[Test]
-		public void TestNoColumns([CteContextSource(true, ProviderName.DB2)] string context)
+		public void TestNoColumns([CteContextSource(true, ProviderName.DB2, ProviderName.DB2iSeries)] string context)
 		{
 			using (var db = GetDataContext(context))
 			//using (var testTable = db.CreateLocalTable<CteDMLTests>("CteChild"))
@@ -526,7 +527,7 @@ namespace Tests.Linq
 		}
 
 		[Test]
-		public void TestInsert([CteContextSource(true, ProviderName.DB2)] string context)
+		public void TestInsert([CteContextSource(true, ProviderName.DB2, ProviderName.DB2iSeries)] string context)
 		{
 			using (var db = GetDataContext(context))
 			using (var testTable = db.CreateLocalTable<CteDMLTests>("CteChild"))
@@ -560,7 +561,7 @@ namespace Tests.Linq
 
 		// MariaDB support expected in v10.6 : https://jira.mariadb.org/browse/MDEV-18511
 		[Test]
-		public void TestDelete([CteContextSource(TestProvName.AllFirebird, ProviderName.DB2, TestProvName.MariaDB)] string context)
+		public void TestDelete([CteContextSource(TestProvName.AllFirebird, ProviderName.DB2, ProviderName.DB2iSeries, TestProvName.MariaDB)] string context)
 		{
 			using (var db  = GetDataContext(context))
 			using (var tmp = db.CreateLocalTable("CteChild",
@@ -614,7 +615,7 @@ namespace Tests.Linq
 		}
 
 		[Test]
-		public void RecursiveTest([CteContextSource(true, ProviderName.DB2)] string context)
+		public void RecursiveTest([CteContextSource(true, ProviderName.DB2, ProviderName.DB2iSeries)] string context)
 		{
 			using (var db = GetDataContext(context))
 			{
@@ -736,7 +737,7 @@ namespace Tests.Linq
 		}
 
 		[Test]
-		public void RecursiveTest2([CteContextSource(true, ProviderName.DB2)] string context)
+		public void RecursiveTest2([CteContextSource(true, ProviderName.DB2, ProviderName.DB2iSeries)] string context)
 		{
 			var hierarchyData = GeHirarchyData();
 
@@ -753,7 +754,7 @@ namespace Tests.Linq
 		}
 
 		[Test]
-		public void TestDoubleRecursion([CteContextSource(true, ProviderName.DB2)] string context)
+		public void TestDoubleRecursion([CteContextSource(true, ProviderName.DB2, ProviderName.DB2iSeries)] string context)
 		{
 			var hierarchyData = GeHirarchyData();
 
@@ -778,7 +779,7 @@ namespace Tests.Linq
 		}
 
 		[Test]
-		public void RecursiveCount([CteContextSource(true, ProviderName.DB2)] string context)
+		public void RecursiveCount([CteContextSource(true, ProviderName.DB2, ProviderName.DB2iSeries)] string context)
 		{
 			var hierarchyData = GeHirarchyData();
 
@@ -793,7 +794,7 @@ namespace Tests.Linq
 		}
 
 		[Test]
-		public void RecursiveInsertInto([CteContextSource(true, ProviderName.DB2)] string context)
+		public void RecursiveInsertInto([CteContextSource(true, ProviderName.DB2, ProviderName.DB2iSeries)] string context)
 		{
 			var hierarchyData = GeHirarchyData();
 
@@ -812,7 +813,7 @@ namespace Tests.Linq
 		}
 
 		[Test]
-		public void RecursiveDeepNesting([CteContextSource(true, ProviderName.DB2)] string context)
+		public void RecursiveDeepNesting([CteContextSource(true, ProviderName.DB2, ProviderName.DB2iSeries)] string context)
 		{
 			using (var db   = GetDataContext(context))
 			using (var tree = db.CreateLocalTable<HierarchyTree>())

@@ -12,12 +12,10 @@ using LinqToDB.Data;
 using LinqToDB.Mapping;
 
 #if NET472
-using IBM.Data.DB2;
+using IBM.Data.DB2.iSeries;
 #else
 using IBM.Data.DB2.Core;
 #endif
-
-using IBM.Data.DB2Types;
 
 using NUnit.Framework;
 
@@ -29,9 +27,9 @@ namespace Tests.DataProvider
 	using Model;
 
 	[TestFixture]
-	public class DB2Tests : DataProviderTestBase
+	public class DB2iSeriesTests : DataProviderTestBase
 	{
-		const string CurrentProvider = ProviderName.DB2;
+		const string CurrentProvider = ProviderName.DB2iSeries;
 
 		[Test]
 		public void TestParameters([IncludeDataSources(CurrentProvider)] string context)
@@ -53,7 +51,7 @@ namespace Tests.DataProvider
 			using (var conn = new DataConnection(context))
 			{
 				Assert.That(TestType<long?>        (conn, "bigintDataType",    DataType.Int64  , "ALLTYPES"),   Is.EqualTo(1000000L));
-				Assert.That(TestType<DB2Int64?>    (conn, "bigintDataType",    DataType.Int64  , "ALLTYPES"),   Is.EqualTo(new DB2Int64(1000000L)));
+				Assert.That(TestType<DB2Int64?>    (conn, "bigintDataType",    DataType.Int64  , "ALLTYPES"),   Is.EqualTo(new iDB2Int64(1000000L)));
 				Assert.That(TestType<int?>         (conn, "intDataType",       DataType.Int32  , "ALLTYPES"),   Is.EqualTo(7777777));
 				Assert.That(TestType<DB2Int32?>    (conn, "intDataType",       DataType.Int32  , "ALLTYPES"),   Is.EqualTo(new DB2Int32(7777777)));
 				Assert.That(TestType<short?>       (conn, "smallintDataType",  DataType.Int16  , "ALLTYPES"),   Is.EqualTo(100));
@@ -95,7 +93,7 @@ namespace Tests.DataProvider
 				            TestType<DB2Blob>      (conn, "blobDataType",      DataType.VarBinary, "ALLTYPES", skipNotNull:true);
 				            TestType<DB2Xml>       (conn, "xmlDataType",       DataType.Xml      , "ALLTYPES", skipPass:true);
 
-				Assert.That(TestType<DB2Decimal?>     (conn, "decimalDataType",   DataType.Decimal  , "ALLTYPES").ToString(), Is.EqualTo(new DB2Decimal(9999999m).ToString()));
+				Assert.That(TestType<iDB2Decimal?>     (conn, "decimalDataType",   DataType.Decimal  , "ALLTYPES").ToString(), Is.EqualTo(new iDB2Decimal(9999999m).ToString()));
 				Assert.That(TestType<DB2Binary>       (conn, "varbinaryDataType", DataType.VarBinary, "ALLTYPES").ToString(), Is.EqualTo(new DB2Binary(new byte[] { 49, 50, 51, 52 }).ToString()));
 				Assert.That(TestType<DB2DecimalFloat?>(conn, "decfloatDataType",  DataType.Decimal  , "ALLTYPES").ToString(), Is.EqualTo(new DB2DecimalFloat(8888888m).ToString()));
 			}
@@ -648,32 +646,32 @@ namespace Tests.DataProvider
 			{
 				conn.Select(() => 1);
 
-				Assert.That(new DB2Clob((DB2Connection)conn.Connection).IsNull, Is.True);
-				Assert.That(new DB2Blob((DB2Connection)conn.Connection).IsNull, Is.True);
+				Assert.That(new iDB2Clob((iDB2Connection)conn.Connection).IsNull, Is.True);
+				Assert.That(new iDB2Blob((iDB2Connection)conn.Connection).IsNull, Is.True);
 			}
 
 			Assert.That(int64Value.Value, Is.TypeOf<long>    ().And.EqualTo(1));
 			Assert.That(int32Value.Value, Is.TypeOf<int>     ().And.EqualTo(2));
 			Assert.That(int16Value.Value, Is.TypeOf<short>   ().And.EqualTo(3));
 
-			var decimalValue          = new DB2Decimal     (4m);
-			var decimalValueAsDecimal = new DB2DecimalFloat(5m);
-			var decimalValueAsDouble  = new DB2DecimalFloat(6.0);
-			var decimalValueAsLong    = new DB2DecimalFloat(7);
-			var realValue             = new DB2Real        (8);
-			var real370Value          = new DB2Real370     (9);
-			var stringValue           = new DB2String      ("1");
-			var clobValue             = new DB2Clob        ("2");
-			var binaryValue           = new DB2Binary      (new byte[] { 1 });
-			var blobValue             = new DB2Blob        (new byte[] { 2 });
-			var dateValue             = new DB2Date        (new DateTime(2000, 1, 1));
-			var timeValue             = new DB2Time        (new TimeSpan(1, 1, 1));
+			var decimalValue          = new iDB2Decimal     (4m);
+			var decimalValueAsDecimal = new iDB2DecimalFloat(5m);
+			var decimalValueAsDouble  = new iDB2DecimalFloat(6.0);
+			var decimalValueAsLong    = new iDB2DecimalFloat(7);
+			var realValue             = new iDB2Real        (8);
+			var real370Value          = new iDB2Real370     (9);
+			var stringValue           = new iDB2String      ("1");
+			var clobValue             = new iDB2Clob        ("2");
+			var binaryValue           = new iDB2Binary      (new byte[] { 1 });
+			var blobValue             = new iDB2Blob        (new byte[] { 2 });
+			var dateValue             = new iDB2Date        (new DateTime(2000, 1, 1));
+			var timeValue             = new iDB2Time        (new TimeSpan(1, 1, 1));
 
 			//if (DB2Types.DB2DateTime.Type != null)
 			{
-				var dateTimeValue1 = new DB2DateTime(new DateTime(2000, 1, 2));
-				var dateTimeValue2 = new DB2DateTime(new DateTime(2000, 1, 3).Ticks);
-				var timeStampValue = new DB2DateTime(new DateTime(2000, 1, 4));
+				var dateTimeValue1 = new iDB2DateTime(new DateTime(2000, 1, 2));
+				var dateTimeValue2 = new iDB2DateTime(new DateTime(2000, 1, 3).Ticks);
+				var timeStampValue = new iDB2DateTime(new DateTime(2000, 1, 4));
 
 				Assert.That(dateTimeValue1.Value, Is.TypeOf<DateTime>().And.EqualTo(new DateTime(2000, 1, 2)));
 				Assert.That(dateTimeValue2.Value, Is.TypeOf<DateTime>().And.EqualTo(new DateTime(2000, 1, 3)));
@@ -693,25 +691,25 @@ namespace Tests.DataProvider
 			Assert.That(dateValue.            Value, Is.TypeOf<DateTime>().And.EqualTo(new DateTime(2000, 1, 1)));
 			Assert.That(timeValue.            Value, Is.TypeOf<TimeSpan>().And.EqualTo(new TimeSpan(1, 1, 1)));
 
-			int64Value = new DB2Int64();
-			int32Value = new DB2Int32();
-			int16Value = new DB2Int16();
+			int64Value = new iDB2Int64();
+			int32Value = new iDB2Int32();
+			int16Value = new iDB2Int16();
 
 			Assert.That(int64Value.IsNull, Is.True);
 			Assert.That(int32Value.IsNull, Is.True);
 			Assert.That(int16Value.IsNull, Is.True);
 
-			Assert.That(new DB2Decimal     ().IsNull, Is.True);
-			Assert.That(new DB2DecimalFloat().IsNull, Is.False);
-			Assert.That(new DB2Real        ().IsNull, Is.True);
-			Assert.That(new DB2Real370     ().IsNull, Is.True);
-			Assert.That(new DB2String      ().IsNull, Is.True);
-			Assert.That(new DB2Binary      ().IsNull, Is.True);
-			Assert.That(new DB2Date        ().IsNull, Is.True);
-			Assert.That(new DB2Time        ().IsNull, Is.True);
-			Assert.That(new DB2TimeStamp   ().IsNull, Is.True);
-			Assert.That(new DB2RowId       ().IsNull, Is.True);
-			Assert.That(new DB2DateTime    ().IsNull, Is.True);
+			Assert.That(new iDB2Decimal     ().IsNull, Is.True);
+			Assert.That(new iDB2DecimalFloat().IsNull, Is.False);
+			Assert.That(new iDB2Real        ().IsNull, Is.True);
+			Assert.That(new iDB2Real370     ().IsNull, Is.True);
+			Assert.That(new iDB2String      ().IsNull, Is.True);
+			Assert.That(new iDB2Binary      ().IsNull, Is.True);
+			Assert.That(new iDB2Date        ().IsNull, Is.True);
+			Assert.That(new iDB2Time        ().IsNull, Is.True);
+			Assert.That(new iDB2TimeStamp   ().IsNull, Is.True);
+			Assert.That(new iDB2RowId       ().IsNull, Is.True);
+			Assert.That(new iDB2DateTime    ().IsNull, Is.True);
 		}
 
 		[Table]
@@ -757,21 +755,21 @@ namespace Tests.DataProvider
 			public DateTime TimeStamp7 { get; set; }
 
 			[Column(Precision = 8)]
-			public DB2TimeStamp TimeStamp8 { get; set; }
+			public iDB2TimeStamp TimeStamp8 { get; set; }
 
 			//[Column(DbType = "timestamp(9)")]
 			[Column(Precision = 9)]
-			public DB2TimeStamp TimeStamp9 { get; set; }
+			public iDB2TimeStamp TimeStamp9 { get; set; }
 
 			[Column(Precision = 10)]
-			public DB2TimeStamp TimeStamp10 { get; set; }
+			public iDB2TimeStamp TimeStamp10 { get; set; }
 
 			//[Column(DbType = "timestamp(11)")]
 			[Column(Precision = 11)]
-			public DB2TimeStamp TimeStamp11 { get; set; }
+			public iDB2TimeStamp TimeStamp11 { get; set; }
 
 			[Column(Precision = 12)]
-			public DB2TimeStamp TimeStamp12 { get; set; }
+			public iDB2TimeStamp TimeStamp12 { get; set; }
 
 			static TestTimeTypes()
 			{
@@ -784,19 +782,19 @@ namespace Tests.DataProvider
 				for (var i = 1; i <= Data.Length; i++)
 				{
 					var idx = i - 1;
-					Data[idx].TimeStamp0  = new     DateTime(1000, 1, 10, 2, 20, 30 + i, 0);
-					Data[idx].TimeStamp1  = new     DateTime(1000, 1, 10, 2, 20, 30, i * 100);
-					Data[idx].TimeStamp2  = new     DateTime(1000, 1, 10, 2, 20, 30, i * 10);
-					Data[idx].TimeStamp3  = new     DateTime(1000, 1, 10, 2, 20, 30, i);
-					Data[idx].TimeStamp4  = new     DateTime(1000, 1, 10, 2, 20, 30, 1).AddTicks(1000 * i);
-					Data[idx].TimeStamp5  = new     DateTime(1000, 1, 10, 2, 20, 30, 1).AddTicks(100 * i);
-					Data[idx].TimeStamp6  = new     DateTime(1000, 1, 10, 2, 20, 30, 1).AddTicks(10 * i);
-					Data[idx].TimeStamp7  = new     DateTime(1000, 1, 10, 2, 20, 30, 1).AddTicks(1 * i);
-					Data[idx].TimeStamp8  = new DB2TimeStamp(1000, 1, 10, 2, 20, 30, 10000 * i, 8);
-					Data[idx].TimeStamp9  = new DB2TimeStamp(1000, 1, 10, 2, 20, 30, 1000 * i, 9);
-					Data[idx].TimeStamp10 = new DB2TimeStamp(1000, 1, 10, 2, 20, 30, 100 * i, 10);
-					Data[idx].TimeStamp11 = new DB2TimeStamp(1000, 1, 10, 2, 20, 30, 10 * i, 11);
-					Data[idx].TimeStamp12 = new DB2TimeStamp(1000, 1, 10, 2, 20, 30, i, 12);
+					Data[idx].TimeStamp0  = new      DateTime(1000, 1, 10, 2, 20, 30 + i, 0);
+					Data[idx].TimeStamp1  = new      DateTime(1000, 1, 10, 2, 20, 30, i * 100);
+					Data[idx].TimeStamp2  = new      DateTime(1000, 1, 10, 2, 20, 30, i * 10);
+					Data[idx].TimeStamp3  = new      DateTime(1000, 1, 10, 2, 20, 30, i);
+					Data[idx].TimeStamp4  = new      DateTime(1000, 1, 10, 2, 20, 30, 1).AddTicks(1000 * i);
+					Data[idx].TimeStamp5  = new      DateTime(1000, 1, 10, 2, 20, 30, 1).AddTicks(100 * i);
+					Data[idx].TimeStamp6  = new      DateTime(1000, 1, 10, 2, 20, 30, 1).AddTicks(10 * i);
+					Data[idx].TimeStamp7  = new      DateTime(1000, 1, 10, 2, 20, 30, 1).AddTicks(1 * i);
+					Data[idx].TimeStamp8  = new iDB2TimeStamp(1000, 1, 10, 2, 20, 30, 10000 * i, 8);
+					Data[idx].TimeStamp9  = new iDB2TimeStamp(1000, 1, 10, 2, 20, 30, 1000 * i, 9);
+					Data[idx].TimeStamp10 = new iDB2TimeStamp(1000, 1, 10, 2, 20, 30, 100 * i, 10);
+					Data[idx].TimeStamp11 = new iDB2TimeStamp(1000, 1, 10, 2, 20, 30, 10 * i, 11);
+					Data[idx].TimeStamp12 = new iDB2TimeStamp(1000, 1, 10, 2, 20, 30, i, 12);
 				}
 			}
 
@@ -807,7 +805,7 @@ namespace Tests.DataProvider
 
 		[ActiveIssue(SkipForNonLinqService = true, Details = "RemoteContext miss provider-specific types mappings. Could be workarounded by explicit column mappings")]
 		[Test]
-		public void TestTimespanAndTimeValues([IncludeDataSources(true, ProviderName.DB2, ProviderName.DB2iSeries)] string context, [Values] bool useParameters)
+		public void TestTimespanAndTimeValues([IncludeDataSources(true, ProviderName.DB2iSeries)] string context, [Values] bool useParameters)
 		{
 			using (var db = GetDataContext(context))
 			using (var table = db.CreateLocalTable(TestTimeTypes.Data))
@@ -868,7 +866,7 @@ namespace Tests.DataProvider
 		}
 
 		[Sql.Expression("{0} = {1}", IsPredicate = true, ServerSideOnly = true, PreferServerSide = true)]
-		public static bool Compare(DB2TimeStamp left, DB2TimeStamp right)
+		public static bool Compare(iDB2TimeStamp left, iDB2TimeStamp right)
 		{
 			throw new InvalidOperationException();
 		}

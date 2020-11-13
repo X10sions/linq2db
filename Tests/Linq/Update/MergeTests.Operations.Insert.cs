@@ -117,7 +117,7 @@ namespace Tests.xUpdate
 		// DB2, SAPHANA: match condition matches multiple target records
 		[Test]
 		public void SameSourceInsertFromTableWithMatch([MergeDataContextSource(
-			ProviderName.DB2, TestProvName.AllSapHana)]
+			ProviderName.DB2,ProviderName.DB2iSeries, TestProvName.AllSapHana)]
 			string context)
 		{
 			using (var db = GetDataContext(context))
@@ -180,7 +180,7 @@ namespace Tests.xUpdate
 		// DB2, SAPHANA: match condition matches multiple target records
 		[Test]
 		public void SameSourceInsertFromQueryWithSelectAndMatch([MergeDataContextSource(
-			ProviderName.DB2, TestProvName.AllSapHana)]
+			ProviderName.DB2, ProviderName.DB2iSeries,TestProvName.AllSapHana)]
 			string context)
 		{
 			using (var db = GetDataContext(context))
@@ -331,7 +331,7 @@ namespace Tests.xUpdate
 		// DB2, SAPHANA: match condition matches multiple target records
 		[Test]
 		public void SameSourceInsertFromCollectionWithMatch([MergeDataContextSource(
-			ProviderName.DB2, TestProvName.AllSapHana)]
+			ProviderName.DB2,ProviderName.DB2iSeries, TestProvName.AllSapHana)]
 			string context)
 		{
 			using (var db = GetDataContext(context))
@@ -574,7 +574,7 @@ namespace Tests.xUpdate
 		}
 
 		[Test]
-		public void InsertFromCrossJoinedSourceQuery3([MergeDataContextSource(ProviderName.DB2, TestProvName.AllSapHana)] string context)
+		public void InsertFromCrossJoinedSourceQuery3([MergeDataContextSource(ProviderName.DB2, ProviderName.DB2iSeries, TestProvName.AllSapHana)] string context)
 		{
 			using (var db = GetDataContext(context))
 			{

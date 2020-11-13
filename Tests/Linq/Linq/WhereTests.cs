@@ -1271,9 +1271,11 @@ namespace Tests.Linq
 			public int Id { get; set; }
 			[Column]
 			[Column(Configuration = ProviderName.DB2, DbType = "smallint")]
+			[Column(Configuration = ProviderName.DB2iSeries, DbType = "smallint")]
 			public bool BoolValue { get; set; }
 			[Column]
 			[Column(Configuration = ProviderName.DB2, DbType = "smallint")]
+			[Column(Configuration = ProviderName.DB2iSeries, DbType = "smallint")]
 			public bool? NullableBoolValue { get; set; }
 
 			public static readonly IEqualityComparer<WhereCases> Comparer = ComparerBuilder.GetEqualityComparer<WhereCases>();

@@ -168,6 +168,7 @@ namespace Tests.xUpdate
 		}
 
 		[Table("ALLTYPES", Configuration = ProviderName.DB2)]
+		[Table("ALLTYPES", Configuration = ProviderName.DB2iSeries)]
 		[Table("AllTypes")]
 		class AllType
 		{
@@ -175,6 +176,7 @@ namespace Tests.xUpdate
 			public int ID;
 			[Column(DataType = DataType.Char, Length = 1)]
 			[Column("CHARDATATYPE", DataType = DataType.Char, Length = 1, Configuration = ProviderName.DB2)]
+			[Column("CHARDATATYPE", DataType = DataType.Char, Length = 1, Configuration = ProviderName.DB2iSeries)]
 			public char charDataType;
 			[Column(DataType = DataType.NChar, Length = 20)]
 			public string? ncharDataType;
@@ -187,7 +189,7 @@ namespace Tests.xUpdate
 		[Test]
 		public void MergeChar1([MergeDataContextSource(
 			false,
-			ProviderName.DB2, ProviderName.Sybase, ProviderName.SybaseManaged, TestProvName.AllInformix)]
+			ProviderName.DB2, ProviderName.DB2iSeries,ProviderName.Sybase, ProviderName.SybaseManaged, TestProvName.AllInformix)]
 			string context)
 		{
 			ResetAllTypesIdentity(context);
@@ -217,7 +219,7 @@ namespace Tests.xUpdate
 		[Test]
 		public void MergeChar2([MergeDataContextSource(
 			false,
-			ProviderName.DB2, ProviderName.Sybase, TestProvName.AllInformix)]
+			ProviderName.DB2, ProviderName.DB2iSeries,ProviderName.Sybase, TestProvName.AllInformix)]
 			string context)
 		{
 			using (var db = new TestDataConnection(context))
@@ -248,7 +250,7 @@ namespace Tests.xUpdate
 		[Test]
 		public void MergeString([MergeDataContextSource(
 			false,
-			ProviderName.DB2, ProviderName.Sybase, TestProvName.AllInformix, TestProvName.AllSapHana)]
+			ProviderName.DB2,ProviderName.DB2iSeries, ProviderName.Sybase, TestProvName.AllInformix, TestProvName.AllSapHana)]
 			string context)
 		{
 			ResetAllTypesIdentity(context);

@@ -80,6 +80,7 @@ namespace Tests.Linq
 				TestProvName.AllPostgreSQL,
 				TestProvName.AllInformix,
 				ProviderName.DB2,
+				ProviderName.DB2iSeries,
 				TestProvName.AllSapHana)]
 			string context)
 		{
@@ -100,6 +101,7 @@ namespace Tests.Linq
 				TestProvName.AllPostgreSQL,
 				TestProvName.AllInformix,
 				ProviderName.DB2,
+				ProviderName.DB2iSeries,
 				TestProvName.AllSapHana)]
 			string context)
 		{
@@ -119,6 +121,7 @@ namespace Tests.Linq
 				TestProvName.AllPostgreSQL,
 				TestProvName.AllInformix,
 				ProviderName.DB2,
+				ProviderName.DB2iSeries,
 				ProviderName.SQLiteMS,
 				TestProvName.AllSapHana)]
 			string context)
@@ -149,7 +152,8 @@ namespace Tests.Linq
 			[DataSources(
 				TestProvName.AllPostgreSQL,
 				TestProvName.AllInformix,
-				ProviderName.DB2)]
+				ProviderName.DB2,
+			  ProviderName.DB2iSeries)]
 			string context)
 		{
 			using (var  db = GetDataContext(context))
@@ -172,7 +176,7 @@ namespace Tests.Linq
 
 		// Excluded providers inline such parameter
 		[Test]
-		public void ExposeSqlDecimalParameter([DataSources(false, ProviderName.DB2, TestProvName.AllInformix)] string context)
+		public void ExposeSqlDecimalParameter([DataSources(false, ProviderName.DB2, ProviderName.DB2iSeries, TestProvName.AllInformix)] string context)
 		{
 			using (var db = new DataConnection(context))
 			{
@@ -187,7 +191,7 @@ namespace Tests.Linq
 
 		// DB2: see DB2SqlOptimizer.SetQueryParameter - binary parameters inlined for DB2
 		[Test]
-		public void ExposeSqlBinaryParameter([DataSources(false, ProviderName.DB2)] string context)
+		public void ExposeSqlBinaryParameter([DataSources(false, ProviderName.DB2, ProviderName.DB2iSeries)] string context)
 		{
 			using (var db = new DataConnection(context))
 			{

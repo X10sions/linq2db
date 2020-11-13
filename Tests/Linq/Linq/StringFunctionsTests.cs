@@ -47,6 +47,7 @@ namespace Tests.Linq
 				TestProvName.AllMySql,
 				TestProvName.AllOracle,
 				ProviderName.DB2,
+				ProviderName.DB2iSeries,
 				TestProvName.AllFirebird)
 			{
 			}
@@ -60,7 +61,8 @@ namespace Tests.Linq
 				TestProvName.AllSapHana,
 				TestProvName.AllMySql,
 				TestProvName.AllOracle,
-				ProviderName.DB2)
+				ProviderName.DB2,
+				ProviderName.DB2iSeries)
 			{
 			}
 		}

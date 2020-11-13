@@ -21,6 +21,7 @@ namespace Tests.xUpdate
 		// TODO: update Sybase.sql to use proper type for identity. now it uses INT for most of tables, which
 		// is silently treated as non-identity field
 		[Table("KeepIdentityTest", Configuration = ProviderName.DB2)]
+		[Table("KeepIdentityTest", Configuration = ProviderName.DB2iSeries)]
 		[Table("KeepIdentityTest", Configuration = ProviderName.Sybase)]
 		[Table("AllTypes")]
 		public class TestTable1
@@ -30,11 +31,13 @@ namespace Tests.xUpdate
 
 			[Column("intDataType")]
 			[Column("Value", Configuration = ProviderName.DB2)]
+			[Column("Value", Configuration = ProviderName.DB2iSeries)]
 			[Column("Value", Configuration = ProviderName.Sybase)]
 			public int Value { get; set; }
 		}
 
 		[Table("KeepIdentityTest", Configuration = ProviderName.DB2)]
+		[Table("KeepIdentityTest", Configuration = ProviderName.DB2iSeries)]
 		[Table("KeepIdentityTest", Configuration = ProviderName.Sybase)]
 		[Table("AllTypes")]
 		public class TestTable2
@@ -44,6 +47,7 @@ namespace Tests.xUpdate
 
 			[Column("intDataType")]
 			[Column("Value", Configuration = ProviderName.DB2)]
+			[Column("Value", Configuration = ProviderName.DB2iSeries)]
 			[Column("Value", Configuration = ProviderName.Sybase)]
 			public int Value { get; set; }
 		}
@@ -281,7 +285,7 @@ namespace Tests.xUpdate
 
 		// DB2: 
 		[Test]
-		public void ReuseOptionTest([DataSources(false, ProviderName.DB2)] string context)
+		public void ReuseOptionTest([DataSources(false, ProviderName.DB2, ProviderName.DB2iSeries)] string context)
 		{
 			using (var db = new TestDataConnection(context))
 			{

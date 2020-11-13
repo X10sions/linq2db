@@ -380,7 +380,7 @@ namespace Tests.xUpdate
 		[Test]
 		public void OtherSourceAssociationInMatch([MergeDataContextSource(
 			false,
-			ProviderName.DB2, ProviderName.Sybase, ProviderName.SybaseManaged, TestProvName.AllInformix)]
+			ProviderName.DB2, ProviderName.DB2iSeries,ProviderName.Sybase, ProviderName.SybaseManaged, TestProvName.AllInformix)]
 			string context)
 		{
 			ResetPersonIdentity(context);
@@ -827,7 +827,7 @@ namespace Tests.xUpdate
 		[Test]
 		public void SameSourceAssociationInMatch([MergeDataContextSource(
 			false,
-			ProviderName.DB2, ProviderName.Sybase, ProviderName.SybaseManaged, TestProvName.AllInformix)]
+			ProviderName.DB2,ProviderName.DB2iSeries, ProviderName.Sybase, ProviderName.SybaseManaged, TestProvName.AllInformix)]
 			string context)
 		{
 			ResetPersonIdentity(context);

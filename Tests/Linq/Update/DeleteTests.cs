@@ -160,7 +160,7 @@ namespace Tests.xUpdate
 		public void DeleteMany1(
 			[DataSources(
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllOracle,
 				TestProvName.AllPostgreSQL,
@@ -199,7 +199,7 @@ namespace Tests.xUpdate
 		public void DeleteMany2(
 			[DataSources(
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllOracle,
 				TestProvName.AllPostgreSQL,
@@ -247,7 +247,7 @@ namespace Tests.xUpdate
 		public void DeleteMany3(
 			[DataSources(
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllOracle,
 				TestProvName.AllPostgreSQL,
@@ -294,7 +294,7 @@ namespace Tests.xUpdate
 		public void DeleteTakeNotOrdered(
 			[DataSources(
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllPostgreSQL,
 				TestProvName.AllSQLite,
 				TestProvName.AllFirebird,

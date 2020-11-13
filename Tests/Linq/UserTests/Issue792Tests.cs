@@ -35,6 +35,7 @@ namespace Tests.UserTests
 		public class AllTypes
 		{
 			[Column("CHAR20DATATYPE", Configuration = ProviderName.DB2)]
+			[Column("CHAR20DATATYPE", Configuration = ProviderName.DB2iSeries)]
 			public string? char20DataType;
 		}
 
@@ -85,7 +86,7 @@ namespace Tests.UserTests
 			// those providers miss procedure schema load implementation for now
 			TestProvName.AllInformix,
 			// those providers cannot load schema when in transaction
-			ProviderName.DB2,
+			ProviderName.DB2,ProviderName.DB2iSeries,
 			ProviderName.Access,
 			TestProvName.AllMySql,
 			TestProvName.AllSqlServer)]
@@ -117,7 +118,7 @@ namespace Tests.UserTests
 
 		[Test]
 		public void TestWithTransactionThrowsFromProvider([IncludeDataSources(
-			ProviderName.DB2,
+			ProviderName.DB2,ProviderName.DB2iSeries,
 			TestProvName.AllSqlServer)]
 			string context)
 		{

@@ -10,19 +10,23 @@ namespace Tests.UserTests
 	{
 		[Table]
 		[Table("ALLTYPES", Configuration = ProviderName.DB2)]
+		[Table("ALLTYPES", Configuration = ProviderName.DB2iSeries)]
 		private class AllTypes
 		{
 			[Column]
 			[Column("CHARDATATYPE", Configuration = ProviderName.DB2)]
+			[Column("CHARDATATYPE", Configuration = ProviderName.DB2iSeries)]
 			public char charDataType { get; set; }
 		}
 
 		[Table("AllTypes")]
 		[Table("ALLTYPES", Configuration = ProviderName.DB2)]
+		[Table("ALLTYPES", Configuration = ProviderName.DB2iSeries)]
 		private class AllTypesNullable
 		{
 			[Column]
 			[Column("CHARDATATYPE", Configuration = ProviderName.DB2)]
+			[Column("CHARDATATYPE", Configuration = ProviderName.DB2iSeries)]
 			public char? charDataType { get; set; }
 		}
 

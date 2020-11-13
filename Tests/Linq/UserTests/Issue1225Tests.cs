@@ -35,6 +35,7 @@ namespace Tests.UserTests
 
 			[Column]
 			[Column(Configuration = ProviderName.DB2, DbType = "char")]
+			[Column(Configuration = ProviderName.DB2iSeries, DbType = "char")]
 			[Column(Configuration = ProviderName.Firebird, DbType = "char(1)")]
 			public bool Actual { get; set; }
 		}

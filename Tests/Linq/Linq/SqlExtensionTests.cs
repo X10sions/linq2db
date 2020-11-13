@@ -259,6 +259,30 @@ namespace Tests.Linq
 			}
 		}
 
+		class DatePartBuilderDB2iSeries : Sql.IExtensionCallBuilder
+		{
+			public void Build(Sql.ISqExtensionBuilder builder)
+			{
+				var part = builder.GetValue<Sql.DateParts>("part");
+				var partStr = part switch
+				{
+					Sql.DateParts.Year          => "To_Number(To_Char({date}, 'YYYY'))",
+					Sql.DateParts.Quarter       => "To_Number(To_Char({date}, 'Q'))",
+					Sql.DateParts.Month         => "To_Number(To_Char({date}, 'MM'))",
+					Sql.DateParts.DayOfYear     => "To_Number(To_Char({date}, 'DDD'))",
+					Sql.DateParts.Day           => "To_Number(To_Char({date}, 'DD'))",
+					Sql.DateParts.Week          => "To_Number(To_Char({date}, 'WW'))",
+					Sql.DateParts.WeekDay       => "DayOfWeek({date})",
+					Sql.DateParts.Hour          => "To_Number(To_Char({date}, 'HH24'))",
+					Sql.DateParts.Minute        => "To_Number(To_Char({date}, 'MI'))",
+					Sql.DateParts.Second        => "To_Number(To_Char({date}, 'SS'))",
+					Sql.DateParts.Millisecond   => "To_Number(To_Char({date}, 'FF')) / 1000",
+					_ => throw new ArgumentOutOfRangeException(),
+				};
+				builder.Expression = partStr;
+			}
+		}
+
 		class DatePartBuilderFirebird: Sql.IExtensionCallBuilder
 		{
 			public void Build(Sql.ISqExtensionBuilder builder)

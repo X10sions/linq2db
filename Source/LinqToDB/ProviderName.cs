@@ -35,6 +35,13 @@ namespace LinqToDB
 		/// Used as configuration name for DB2 z/OS mapping schema <see cref="DataProvider.DB2.DB2zOSMappingSchema"/>.
 		/// </summary>
 		public const string DB2zOS        = "DB2.z/OS";
+
+		/// <summary>
+		/// IBM DB2 iSeries default provider (DB2 iSeries).
+		/// Used as configuration name for both DB2iSeries base mapping schema <see cref="DataProvider.DB2iSeries.DB2iSeriesMappingSchema"/>.
+		/// </summary>
+		public const string DB2iSeries    = "DB2.iSeries";
+
 		/// <summary>
 		/// Firebird provider.
 		/// Used as configuration name for Firebird mapping schema <see cref="DataProvider.Firebird.FirebirdMappingSchema"/>.

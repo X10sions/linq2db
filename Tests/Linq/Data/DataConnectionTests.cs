@@ -13,6 +13,7 @@ using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.DataProvider;
 using LinqToDB.DataProvider.DB2;
+using LinqToDB.DataProvider.DB2iSeries;
 using LinqToDB.DataProvider.SqlServer;
 
 namespace Tests.Data
@@ -107,7 +108,7 @@ namespace Tests.Data
 		}
 
 		[Test]
-		public void GetDataProviderTest([IncludeDataSources(ProviderName.DB2, TestProvName.AllSqlServer2005Plus)] string context)
+		public void GetDataProviderTest([IncludeDataSources(ProviderName.DB2, ProviderName.DB2iSeries, TestProvName.AllSqlServer2005Plus)] string context)
 		{
 			var connectionString = DataConnection.GetConnectionString(context);
 
@@ -121,9 +122,22 @@ namespace Tests.Data
 
 					Assert.That(dataProvider, Is.TypeOf<DB2DataProvider>());
 
-					var sqlServerDataProvider = (DB2DataProvider)dataProvider;
+					var dataProvider = (DB2DataProvider)dataProvider;
 
-					Assert.That(sqlServerDataProvider.Version, Is.EqualTo(DB2Version.LUW));
+					Assert.That(dataProvider.Version, Is.EqualTo(DB2Version.LUW));
+
+					break;
+				}
+
+				case ProviderName.DB2iSeries:
+				{
+					dataProvider = DataConnection.GetDataProvider("DB2iSeries", connectionString)!;
+
+					Assert.That(dataProvider, Is.TypeOf<DB2iSeriesDataProvider>());
+
+					var dataProvider = (DB2iSeriesDataProvider)dataProvider;
+
+					Assert.That(dataProvider.Version, Is.EqualTo(DB2iSeriesVersion.V7R4));
 
 					break;
 				}
@@ -1109,6 +1123,7 @@ namespace Tests.Data
 		{
 			if (withScope && (
 				context == ProviderName.DB2            ||
+				context == ProviderName.DB2iSeries     ||
 				context == ProviderName.InformixDB2    ||
 				context == ProviderName.MySqlConnector ||
 				context == ProviderName.SapHanaNative  ||
@@ -1162,6 +1177,7 @@ namespace Tests.Data
 		{
 			if (withScope && (
 				context == ProviderName.DB2                 ||
+				context == ProviderName.DB2iSeries          ||
 				context == ProviderName.InformixDB2         ||
 				context == ProviderName.SapHanaOdbc         ||
 				context == ProviderName.SqlCe               ||

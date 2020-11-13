@@ -327,7 +327,7 @@ namespace Tests.xUpdate
 			[DataSources(
 				TestProvName.AllInformix,
 				ProviderName.SqlCe,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllFirebird,
 				TestProvName.AllOracle,
 				TestProvName.AllMySql,
@@ -367,7 +367,7 @@ namespace Tests.xUpdate
 			[DataSources(
 				TestProvName.AllInformix,
 				ProviderName.SqlCe,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllFirebird,
 				TestProvName.AllOracle,
 				TestProvName.AllMySql,
@@ -421,7 +421,7 @@ namespace Tests.xUpdate
 		public void Update12(
 			[DataSources(
 				ProviderName.SqlCe,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllFirebird,
 				TestProvName.AllOracle,
@@ -445,7 +445,7 @@ namespace Tests.xUpdate
 		public async Task Update12Async(
 			[DataSources(
 				ProviderName.SqlCe,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllFirebird,
 				TestProvName.AllOracle,
@@ -469,7 +469,7 @@ namespace Tests.xUpdate
 		public void Update13(
 			[DataSources(
 				ProviderName.SqlCe,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllFirebird,
 				TestProvName.AllOracle,
@@ -918,7 +918,7 @@ namespace Tests.xUpdate
 			[DataSources(
 				false,
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllOracle,
 				TestProvName.AllSQLite,
@@ -992,13 +992,13 @@ namespace Tests.xUpdate
 			{
 				db.Update(new Table3 { ParentID = 10000, ChildID = null, GrandChildID = 1000 });
 
-				if (db is DataConnection)
-					Assert.IsTrue(((DataConnection)db).LastQuery!.Contains("IS NULL"));
+				if (db is DataConnection conn1)
+					Assert.IsTrue(conn1.LastQuery!.Contains("IS NULL"));
 
 				db.Update(new Table3 { ParentID = 10000, ChildID = 111, GrandChildID = 1000 });
 
-				if (db is DataConnection)
-					Assert.IsFalse(((DataConnection)db).LastQuery!.Contains("IS NULL"));
+				if (db is DataConnection conn2)
+					Assert.IsFalse(conn2.LastQuery!.Contains("IS NULL"));
 			}
 		}
 
@@ -1006,7 +1006,7 @@ namespace Tests.xUpdate
 		public void UpdateTop(
 			[DataSources(
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllFirebird,
 				TestProvName.AllPostgreSQL,
@@ -1047,7 +1047,7 @@ namespace Tests.xUpdate
 		public void TestUpdateTakeOrdered(
 			[DataSources(
 				ProviderName.Access,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				ProviderName.SqlCe,
 				ProviderName.SqlServer2000,
@@ -1093,7 +1093,7 @@ namespace Tests.xUpdate
 		public void TestUpdateSkipTake(
 			[DataSources(
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				ProviderName.SqlCe,
 				ProviderName.SqlServer2000,
@@ -1142,7 +1142,7 @@ namespace Tests.xUpdate
 		public void TestUpdateTakeNotOrdered(
 			[DataSources(
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllFirebird,
 				TestProvName.AllSQLite,
@@ -1257,7 +1257,7 @@ namespace Tests.xUpdate
 		// maybe we need to do the same for unmanaged
 		[ActiveIssue("AseException : Null value is not allowed in BIT TYPE", Configuration = ProviderName.Sybase)]
 		[Test]
-		public void UpdateIssue321Regression([DataSources(ProviderName.DB2, TestProvName.AllInformix, TestProvName.AllFirebird)] string context)
+		public void UpdateIssue321Regression([DataSources(ProviderName.DB2, ProviderName.DB2iSeries, TestProvName.AllInformix, TestProvName.AllFirebird)] string context)
 		{
 			using (var db = GetDataContext(context))
 			{
@@ -1527,7 +1527,7 @@ namespace Tests.xUpdate
 			TestProvName.AllMySql,
 			TestProvName.AllFirebird,
 			TestProvName.AllInformix,
-			ProviderName.DB2,
+			ProviderName.DB2,ProviderName.DB2iSeries,
 			ProviderName.SqlCe)] string context)
 		{
 			using (var db = GetDataContext(context))
@@ -1558,7 +1558,7 @@ namespace Tests.xUpdate
 			TestProvName.AllMySql,
 			TestProvName.AllFirebird,
 			TestProvName.AllInformix,
-			ProviderName.DB2,
+			ProviderName.DB2,ProviderName.DB2iSeries,
 			ProviderName.SqlCe)] string context)
 		{
 			using (var db = GetDataContext(context))
@@ -1589,7 +1589,7 @@ namespace Tests.xUpdate
 			TestProvName.AllMySql,
 			TestProvName.AllFirebird,
 			TestProvName.AllInformix,
-			ProviderName.DB2,
+			ProviderName.DB2,ProviderName.DB2iSeries,
 			ProviderName.SqlCe)] string context)
 		{
 			using (var db = GetDataContext(context))
@@ -1620,7 +1620,7 @@ namespace Tests.xUpdate
 			TestProvName.AllMySql,
 			TestProvName.AllFirebird,
 			TestProvName.AllInformix,
-			ProviderName.DB2,
+			ProviderName.DB2,ProviderName.DB2iSeries,
 			ProviderName.SqlCe)] string context)
 		{
 			using (var db = GetDataContext(context))
@@ -1651,7 +1651,7 @@ namespace Tests.xUpdate
 			TestProvName.AllMySql,
 			TestProvName.AllFirebird,
 			TestProvName.AllInformix,
-			ProviderName.DB2,
+			ProviderName.DB2,ProviderName.DB2iSeries,
 			ProviderName.SqlCe)] string context)
 		{
 			using (var db = GetDataContext(context))
@@ -1682,7 +1682,7 @@ namespace Tests.xUpdate
 			TestProvName.AllMySql,
 			TestProvName.AllFirebird,
 			TestProvName.AllInformix,
-			ProviderName.DB2,
+			ProviderName.DB2,ProviderName.DB2iSeries,
 			ProviderName.SqlCe)] string context)
 		{
 			using (var db = GetDataContext(context))

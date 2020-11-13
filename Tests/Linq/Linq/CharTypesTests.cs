@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 
 using LinqToDB;
@@ -31,6 +31,7 @@ namespace Tests.Linq
 			[Column("ncharDataType")]
 			[Column("nchar20DataType", Configuration = ProviderName.SapHana)]
 			[Column("CHAR20DATATYPE" , Configuration = ProviderName.DB2)]
+			[Column("CHAR20DATATYPE" , Configuration = ProviderName.DB2iSeries)]
 			[Column("char20DataType" , Configuration = ProviderName.PostgreSQL)]
 			[Column("char20DataType" , Configuration = ProviderName.MySql)]
 			[Column("char20DataType" , Configuration = ProviderName.MySqlConnector)]
@@ -60,6 +61,7 @@ namespace Tests.Linq
 			[Column("ncharDataType"  , DataType = DataType.NChar)]
 			[Column("nchar20DataType", DataType = DataType.NChar, Configuration = ProviderName.SapHana)]
 			[Column("CHAR20DATATYPE" , DataType = DataType.NChar, Configuration = ProviderName.DB2)]
+			[Column("CHAR20DATATYPE" , DataType = DataType.NChar, Configuration = ProviderName.DB2iSeries)]
 			[Column("char20DataType" , DataType = DataType.NChar, Configuration = ProviderName.PostgreSQL)]
 			[Column("char20DataType" , DataType = DataType.NChar, Configuration = ProviderName.MySql)]
 			[Column("char20DataType" , DataType = DataType.NChar, Configuration = ProviderName.MySqlConnector)]
@@ -167,6 +169,7 @@ namespace Tests.Linq
 			// filter out null-character test cases for servers/providers without support
 			if (   context.Contains(ProviderName.PostgreSQL)
 				|| provider == ProviderName.DB2
+				|| provider == ProviderName.DB2iSeries
 				|| provider == ProviderName.SqlCe
 				|| context.Contains(ProviderName.SapHana))
 				return CharTestData.Where(_ => _.NChar != '\0').ToArray();
@@ -190,6 +193,8 @@ namespace Tests.Linq
 			if (context.Contains(ProviderName.PostgreSQL)
 				|| provider == ProviderName.DB2
 				|| context  == ProviderName.DB2           + ".LinqService"
+				|| provider == ProviderName.DB2iSeries
+				|| context == ProviderName.DB2iSeries + ".LinqService"
 				|| context.Contains("SQLite")
 				|| provider == ProviderName.SqlCe
 				|| context.Contains(ProviderName.SapHana))
@@ -322,6 +327,8 @@ namespace Tests.Linq
 				|| context == ProviderName.SqlCe      + ".LinqService"
 				|| context == ProviderName.DB2
 				|| context == ProviderName.DB2        + ".LinqService"
+				|| context == ProviderName.DB2iSeries
+				|| context == ProviderName.DB2iSeries + ".LinqService"
 				|| context.Contains(ProviderName.PostgreSQL)
 				|| context == ProviderName.MySql
 				|| context == ProviderName.MySql + ".LinqService"

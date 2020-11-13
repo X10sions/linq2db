@@ -494,6 +494,7 @@ namespace Tests.xUpdate
 				&& provider != ProviderName.Sybase
 				&& provider != ProviderName.SybaseManaged
 				&& provider != ProviderName.DB2
+				&& provider != ProviderName.DB2iSeries
 				&& !provider.StartsWith(ProviderName.SapHana))
 				Assert.AreEqual(expected, actual);
 		}
@@ -653,6 +654,7 @@ namespace Tests.xUpdate
 						expected = TimeSpan.FromTicks((expected.Value.Ticks / 10) * 10);
 						break;
 					case ProviderName.DB2           :
+					case ProviderName.DB2iSeries    :
 					case ProviderName.Access        :
 					case ProviderName.AccessOdbc    :
 					case ProviderName.SapHanaNative :

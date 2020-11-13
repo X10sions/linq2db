@@ -243,6 +243,20 @@ namespace Tests.SchemaProvider
 		}
 
 		[Test]
+		public void DB2iSeriesTest([IncludeDataSources(ProviderName.DB2iSeries)] string context)
+		{
+			using(var conn = new DataConnection(context))
+			{
+				var sp       = conn.DataProvider.GetSchemaProvider();
+				var dbSchema = sp.GetSchema(conn);
+				var table    = dbSchema.Tables.Single(t => t.TableName == "ALLTYPES");
+
+				Assert.That(table.Columns.Single(c => c.ColumnName == "BINARYDATATYPE").ColumnType, Is.EqualTo("CHAR (5) FOR BIT DATA"));
+				Assert.That(table.Columns.Single(c => c.ColumnName == "VARBINARYDATATYPE").ColumnType, Is.EqualTo("VARCHAR (5) FOR BIT DATA"));
+			}
+		}
+
+		[Test]
 		public void ToValidNameTest()
 		{
 			Assert.AreEqual("_1", SchemaProviderBase.ToValidName("1"));

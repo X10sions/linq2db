@@ -41,7 +41,7 @@ namespace Tests.UserTests
 		[Test]
 		public void Test([DataSources(
 			ProviderName.Access,
-			ProviderName.DB2,
+			ProviderName.DB2,ProviderName.DB2iSeries,
 			TestProvName.AllInformix,
 			TestProvName.AllOracle,
 			ProviderName.SqlCe,

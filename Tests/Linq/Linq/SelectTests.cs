@@ -388,9 +388,9 @@ namespace Tests.Linq
 		{
 			using (var db = GetDataContext(context))
 			{
-				if (db is DataConnection)
+				if (db is DataConnection conn)
 				{
-					((DataConnection)db).AddMappingSchema(_myMapSchema);
+					conn.AddMappingSchema(_myMapSchema);
 
 					var q = (
 
@@ -917,6 +917,7 @@ namespace Tests.Linq
 			[DataSources(
 					false,
 					ProviderName.DB2,
+					ProviderName.DB2iSeries,
 					TestProvName.AllPostgreSQL,
 					TestProvName.AllFirebird,
 					TestProvName.AllSapHana)]
@@ -1513,7 +1514,7 @@ namespace Tests.Linq
 		public static T Wrap4<T>(T value) => value;
 
 		[Test]
-		public void SelectExpression1([DataSources(ProviderName.DB2, TestProvName.AllFirebird)] string context)
+		public void SelectExpression1([DataSources(ProviderName.DB2, ProviderName.DB2iSeries, TestProvName.AllFirebird)] string context)
 		{
 			using (var db    = GetDataContext(context))
 			using (var table = db.CreateLocalTable(SelectExpressionTable.Data))
@@ -1525,7 +1526,7 @@ namespace Tests.Linq
 		}
 
 		[Test]
-		public void SelectExpression2([DataSources(ProviderName.DB2, TestProvName.AllFirebird)] string context)
+		public void SelectExpression2([DataSources(ProviderName.DB2, ProviderName.DB2iSeries, TestProvName.AllFirebird)] string context)
 		{
 			using (var db = GetDataContext(context))
 			using (var table = db.CreateLocalTable(SelectExpressionTable.Data))

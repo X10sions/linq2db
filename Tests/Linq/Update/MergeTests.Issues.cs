@@ -344,7 +344,7 @@ namespace Tests.xUpdate
 		#endregion
 
 		[Test]
-		public void TestDB2NullsInSource([IncludeDataSources(true, ProviderName.DB2)] string context)
+		public void TestDB2NullsInSource([IncludeDataSources(true, ProviderName.DB2, ProviderName.DB2iSeries)] string context)
 		{
 			using (var db = GetDataContext(context))
 			{

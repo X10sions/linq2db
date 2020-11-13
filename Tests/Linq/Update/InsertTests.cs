@@ -31,7 +31,7 @@ namespace Tests.xUpdate
 		[Test]
 		public void DistinctInsert1(
 			[DataSources(
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllPostgreSQL,
 				TestProvName.AllSQLite,
@@ -72,7 +72,7 @@ namespace Tests.xUpdate
 		[Test]
 		public void DistinctInsert2(
 			[DataSources(
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllPostgreSQL,
 				TestProvName.AllSQLite,

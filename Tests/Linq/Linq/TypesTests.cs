@@ -199,6 +199,7 @@ namespace Tests.Linq
 		public void NewGuid(
 			[DataSources(
 				ProviderName.DB2,
+				ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllFirebird,
 				TestProvName.AllPostgreSQL,
@@ -260,6 +261,7 @@ namespace Tests.Linq
 		public void InsertBinary1(
 			[DataSources(
 				ProviderName.DB2,
+			  ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllSQLite,
 				ProviderName.Access)]
@@ -356,7 +358,7 @@ namespace Tests.Linq
 				ProviderName.SqlCe,
 				TestProvName.AllAccess,
 				ProviderName.SqlServer2000, ProviderName.SqlServer2005,
-				ProviderName.DB2,
+				ProviderName.DB2,			ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllFirebird,
 				TestProvName.AllOracle,
@@ -387,7 +389,7 @@ namespace Tests.Linq
 				ProviderName.SqlCe,
 				TestProvName.AllAccess,
 				ProviderName.SqlServer2000, ProviderName.SqlServer2005,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllFirebird,
 				TestProvName.AllOracle,
@@ -421,7 +423,7 @@ namespace Tests.Linq
 				ProviderName.SqlCe,
 				TestProvName.AllAccess,
 				ProviderName.SqlServer2000, ProviderName.SqlServer2005,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllFirebird,
 				TestProvName.AllOracle,

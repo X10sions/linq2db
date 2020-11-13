@@ -18,7 +18,7 @@ namespace Tests.UserTests
 				TestProvName.AllMySql,
 				TestProvName.AllSybase,
 				TestProvName.AllSqlServer,
-				ProviderName.DB2,
+				ProviderName.DB2, ProviderName.DB2iSeries,
 				ProviderName.SqlCe,
 				TestProvName.AllSapHana)
 			{

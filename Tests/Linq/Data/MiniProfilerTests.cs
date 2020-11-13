@@ -26,7 +26,9 @@ using MySqlDataMySqlConnection    = MySql.Data.MySqlClient.MySqlConnection;
 using System.Globalization;
 using LinqToDB.DataProvider.SQLite;
 using LinqToDB.DataProvider.DB2;
+using LinqToDB.DataProvider.DB2iSeries;
 using IBM.Data.DB2Types;
+using IBM.Data.DB2.i.DB2Types;
 using Tests.DataProvider;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Types;
@@ -536,6 +538,67 @@ namespace Tests.Data
 					cn.Open();
 
 					Assert.AreEqual(DB2ProviderAdapter.DB2ServerTypes.DB2_UW, cn.eServerType);
+				}
+			}
+		}
+
+		[Test]
+		public void TestDB2iSeries([IncludeDataSources(ProviderName.DB2iSeries)] string context, [Values] ConnectionType type)
+		{
+			var unmapped = type == ConnectionType.MiniProfilerNoMappings;
+#if NET472
+			using(var db = CreateDataConnection(new DB2DataProvider(ProviderName.DB2iSeries, DB2iSeriesVersion.V7R4), context, type, "IBM.Data.DB2.iSeries.iDB2Connection, IBM.Data.DB2.iSeries"))
+#else
+			using (var db = CreateDataConnection(new DB2DataProvider(ProviderName.DB2iSeries, DB2iSeriesVersion.V7R4), context, type, "IBM.Data.DB2.Core.iDB2Connection, IBM.Data.DB2.Core"))
+#endif
+			{
+				var trace = string.Empty;
+				db.OnTraceConnection += (TraceInfo ti) =>
+				{
+					if(ti.TraceInfoStep == TraceInfoStep.BeforeExecute)
+						trace = ti.SqlText;
+				};
+
+				// we have DB2iSeries tests for all types, so here we will test only one type (they all look the same)
+				// test provider-specific type readers
+				var longValue = -12335L;
+				Assert.AreEqual(longValue, db.Execute<iDB2Int64>("SELECT Cast(@p as bigint) FROM SYSIBM.SYSDUMMY1", new DataParameter("p", longValue, DataType.Int64)).Value);
+				var rawValue = db.Execute<object>("SELECT Cast(@p as bigint) FROM SYSIBM.SYSDUMMY1", new DataParameter("p", longValue, DataType.Int64));
+				// iDB2DataReader returns provider-specific types only if asked explicitly
+				Assert.True(rawValue is long);
+				Assert.AreEqual(longValue, (long)rawValue);
+
+				// test provider-specific parameter values
+				Assert.AreEqual(longValue, db.Execute<long>("SELECT Cast(@p as bigint) FROM SYSIBM.SYSDUMMY1", new DataParameter("p", new  iDB2Int64(longValue), DataType.Int64)));
+
+				//// assert provider-specific parameter type name
+				Assert.AreEqual(2, db.Execute<int>("SELECT ID FROM AllTypes WHERE blobDataType = @p", new DataParameter("p", new byte[] { 50, 51, 52 }, DataType.Blob)));
+				Assert.True(trace.Contains("DECLARE @p Blob("));
+
+				// bulk copy
+				try
+				{
+					db.BulkCopy(
+						new BulkCopyOptions() { BulkCopyType = BulkCopyType.ProviderSpecific },
+						Enumerable.Range(0, 1000).Select(n => new ALLTYPE() { ID = 2000 + n }));
+
+					Assert.AreEqual(!unmapped, trace.Contains("INSERT BULK"));
+				}
+				finally
+				{
+					db.GetTable<ALLTYPE>().Delete(p => p.ID >= 2000);
+				}
+
+				// just check schema (no api used)
+				db.DataProvider.GetSchemaProvider().GetSchema(db);
+
+				// test connection server type property
+				var cs = DataConnection.GetConnectionString(GetProviderName(context, out var _));
+				using(var cn = DB2iSeriesProviderAdapter.GetInstance().CreateConnection(cs))
+				{
+					cn.Open();
+
+					Assert.AreEqual(DB2iSeriesProviderAdapter.DB2iSeriesServerTypes.DB2_UW, cn.eServerType);
 				}
 			}
 		}

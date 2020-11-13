@@ -1186,6 +1186,28 @@ namespace LinqToDB.Linq
 
 				#endregion
 
+				#region DB2iSeries
+
+{ ProviderName.DB2iSeries, new Dictionary<MemberInfo,IExpressionInfo> {
+	{ M(() => Sql.Space   (0)        ), N(() => L<int?,string>       ( p0           => Sql.Convert(Sql.VarChar(1000), Replicate(" ", p0)))) },
+	{ M(() => Sql.Stuff   ("",0,0,"")), N(() => L<string?,int?,int?,string?,string?>((p0,p1,p2,p3) => AltStuff(p0, p1, p2, p3))) },
+	{ M(() => Sql.PadRight("",0,' ') ), N(() => L<string,int?,char?,string>  ((p0,p1,p2)    => p0.Length > p1 ? p0 : p0 + VarChar(Replicate(p2, p1 - p0.Length)!, 1000))) },
+	{ M(() => Sql.PadLeft ("",0,' ') ), N(() => L<string,int?,char?,string>  ((p0,p1,p2)    => p0.Length > p1 ? p0 : VarChar(Replicate(p2, p1 - p0.Length)!, 1000) + p0)) },
+
+	{ M(() => Sql.ConvertTo<string>.From((decimal)0)), N(() => L<decimal,string?>((decimal p) => Sql.TrimLeft(Sql.Convert<string,decimal>(p), '0'))) },
+	{ M(() => Sql.ConvertTo<string>.From(Guid.Empty)), N(() => L<Guid,   string?>((Guid    p) => Sql.Lower(
+		Sql.Substring(Hex(p),  7,  2) + Sql.Substring(Hex(p),  5, 2) + Sql.Substring(Hex(p), 3, 2) + Sql.Substring(Hex(p), 1, 2) + "-" +
+		Sql.Substring(Hex(p), 11,  2) + Sql.Substring(Hex(p),  9, 2) + "-" +
+		Sql.Substring(Hex(p), 15,  2) + Sql.Substring(Hex(p), 13, 2) + "-" +
+		Sql.Substring(Hex(p), 17,  4) + "-" +
+		Sql.Substring(Hex(p), 21, 12)))) },
+
+	{ M(() => Sql.Log(0m, 0)), N(() => L<decimal?,decimal?,decimal?>((m,n) => Sql.Log(n) / Sql.Log(m))) },
+	{ M(() => Sql.Log(0.0,0)), N(() => L<double?,double?,double?>   ((m,n) => Sql.Log(n) / Sql.Log(m))) },
+}},
+
+#endregion
+
 				#region Informix
 
 				{ ProviderName.Informix, new Dictionary<MemberInfo,IExpressionInfo> {
@@ -1646,6 +1668,7 @@ namespace LinqToDB.Linq
 		[CLSCompliant(false)]
 		[Sql.Function]
 		[Sql.Function(ProviderName.DB2,        "Repeat")]
+		[Sql.Function(ProviderName.DB2iSeries, "Repeat")]
 		[Sql.Function(ProviderName.PostgreSQL, "Repeat")]
 		[Sql.Function(ProviderName.Access,     "string", 1, 0)]
 		public static string? Replicate(string? str, int? count)
@@ -1664,6 +1687,7 @@ namespace LinqToDB.Linq
 		[CLSCompliant(false)]
 		[Sql.Function]
 		[Sql.Function(ProviderName.DB2,        "Repeat")]
+		[Sql.Function(ProviderName.DB2iSeries, "Repeat")]
 		[Sql.Function(ProviderName.PostgreSQL, "Repeat")]
 		[Sql.Function(ProviderName.Access,     "string", 1, 0)]
 		public static string? Replicate(char? ch, int? count)

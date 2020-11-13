@@ -304,6 +304,7 @@ namespace Tests.Linq
 		public void NewGuid1(
 			[DataSources(
 				ProviderName.DB2,
+				ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllPostgreSQL,
 				TestProvName.AllSQLite,
@@ -320,6 +321,7 @@ namespace Tests.Linq
 		public void NewGuid2(
 			[DataSources(
 				ProviderName.DB2,
+				ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllPostgreSQL,
 				TestProvName.AllSQLite,

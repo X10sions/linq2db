@@ -111,6 +111,7 @@ namespace Tests.Linq
 		[Test]
 		public void IsGlobalTemporaryTest([IncludeDataSources(
 			ProviderName.DB2,
+			ProviderName.DB2iSeries,
 			ProviderName.Firebird,
 			ProviderName.Oracle,
 			TestProvName.AllSqlServer2005Plus,
@@ -136,6 +137,7 @@ namespace Tests.Linq
 		public void CreateIfNotExistsTest([IncludeDataSources(
 			true,
 			ProviderName.DB2,
+			ProviderName.DB2iSeries,
 			ProviderName.Informix,
 			ProviderName.Firebird,
 			TestProvName.AllMySql,
@@ -164,6 +166,7 @@ namespace Tests.Linq
 		public void CreateTempIfNotExistsTest([IncludeDataSources(
 			false,
 			ProviderName.DB2,
+			ProviderName.DB2iSeries,
 			ProviderName.Informix,
 			ProviderName.Firebird,
 			TestProvName.AllMySql,
@@ -317,6 +320,24 @@ namespace Tests.Linq
 				                           TableOptions.IsGlobalTemporaryStructure,
 				                           TableOptions.IsGlobalTemporaryStructure | TableOptions.IsLocalTemporaryData)]
 			TableOptions tableOptions)
+		{
+			TestTableOptions(context, tableOptions);
+		}
+
+		[Test]
+		public void DB2iSeriesableOptionsTest(
+	[IncludeDataSources(ProviderName.DB2iSeries)] string context,
+	[Values(
+			TableOptions.IsTemporary,
+			TableOptions.IsTemporary |                                           TableOptions.IsLocalTemporaryData,
+			TableOptions.IsTemporary | TableOptions.IsLocalTemporaryStructure,
+			TableOptions.IsTemporary | TableOptions.IsLocalTemporaryStructure  | TableOptions.IsLocalTemporaryData,
+																																					 TableOptions.IsLocalTemporaryData,
+																 TableOptions.IsLocalTemporaryStructure,
+																 TableOptions.IsLocalTemporaryStructure  | TableOptions.IsLocalTemporaryData,
+																 TableOptions.IsGlobalTemporaryStructure,
+																 TableOptions.IsGlobalTemporaryStructure | TableOptions.IsLocalTemporaryData)]
+		TableOptions tableOptions)
 		{
 			TestTableOptions(context, tableOptions);
 		}

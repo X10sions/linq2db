@@ -349,8 +349,8 @@ namespace Tests.Linq
 		{
 			using (var db = GetDataContext(context))
 				AreEqual(
-					from p in from t in    Types select (Single)t.MoneyValue where p > 0 select p,
-					from p in from t in db.Types select (Single)t.MoneyValue where p > 0 select p);
+					from p in from t in    Types select (float)t.MoneyValue where p > 0 select p,
+					from p in from t in db.Types select (float)t.MoneyValue where p > 0 select p);
 		}
 
 		[Test]
@@ -607,6 +607,7 @@ namespace Tests.Linq
 		#endregion
 
 		[ActiveIssue("CI: SQL0245N  The invocation of routine DECIMAL is ambiguous. The argument in position 1 does not have a best fit", Configuration = ProviderName.DB2)]
+		[ActiveIssue("CI: SQL0245N  The invocation of routine DECIMAL is ambiguous. The argument in position 1 does not have a best fit", Configuration = ProviderName.DB2iSeries)]
 		[Test]
 		public void ConvertFromOneToAnother([DataSources] string context)
 		{

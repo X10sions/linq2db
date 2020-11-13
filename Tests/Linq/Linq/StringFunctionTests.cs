@@ -241,7 +241,7 @@ namespace Tests.Linq
 		}
 
 		[Test]
-		public void StartsWith2([DataSources(ProviderName.DB2, TestProvName.AllAccess)] string context)
+		public void StartsWith2([DataSources(ProviderName.DB2, ProviderName.DB2iSeries, TestProvName.AllAccess)] string context)
 		{
 			using (var db = GetDataContext(context))
 				AreEqual(
@@ -250,7 +250,7 @@ namespace Tests.Linq
 		}
 
 		[Test]
-		public void StartsWith3([DataSources(ProviderName.DB2, TestProvName.AllAccess)] string context)
+		public void StartsWith3([DataSources(ProviderName.DB2, ProviderName.DB2iSeries, TestProvName.AllAccess)] string context)
 		{
 			var str = "John123";
 
@@ -261,7 +261,7 @@ namespace Tests.Linq
 		}
 
 		[Test]
-		public void StartsWith4([DataSources(ProviderName.DB2, TestProvName.AllAccess)] string context)
+		public void StartsWith4([DataSources(ProviderName.DB2, ProviderName.DB2iSeries, TestProvName.AllAccess)] string context)
 		{
 			using (var db = GetDataContext(context))
 				AreEqual(
@@ -277,7 +277,7 @@ namespace Tests.Linq
 		}
 
 		[Test]
-		public void StartsWith5([DataSources(ProviderName.DB2, TestProvName.AllAccess)] string context)
+		public void StartsWith5([DataSources(ProviderName.DB2, ProviderName.DB2iSeries, TestProvName.AllAccess)] string context)
 		{
 			using (var db = GetDataContext(context))
 				AreEqual(
@@ -376,7 +376,8 @@ namespace Tests.Linq
 		[ActiveIssue(Details = "Sql.CharIndex(string, string, int) have incorrect SQL logic for all providers (except HANA)")]
 		[Test]
 		public void IndexOf3([DataSources(
-			ProviderName.DB2, TestProvName.AllFirebird,
+			ProviderName.DB2, ProviderName.DB2iSeries,
+			TestProvName.AllFirebird,
 			ProviderName.SqlCe, TestProvName.AllAccess, ProviderName.SQLiteMS)]
 			string context)
 		{
@@ -393,7 +394,8 @@ namespace Tests.Linq
 
 		[Test]
 		public void LastIndexOf1([DataSources(
-			ProviderName.DB2, TestProvName.AllInformix,
+			ProviderName.DB2, ProviderName.DB2iSeries,
+			TestProvName.AllInformix,
 			ProviderName.SqlCe, TestProvName.AllAccess, TestProvName.AllSapHana, ProviderName.SQLiteMS)]
 			string context)
 		{
@@ -406,7 +408,8 @@ namespace Tests.Linq
 
 		[Test]
 		public void LastIndexOf2([DataSources(
-			ProviderName.DB2, TestProvName.AllInformix, ProviderName.SqlCe,
+			ProviderName.DB2, ProviderName.DB2iSeries,
+			TestProvName.AllInformix, ProviderName.SqlCe,
 			TestProvName.AllAccess, TestProvName.AllSapHana, ProviderName.SQLiteMS)]
 			string context)
 		{
@@ -420,7 +423,7 @@ namespace Tests.Linq
 
 		[Test]
 		public void LastIndexOf3([DataSources(
-			ProviderName.DB2, TestProvName.AllInformix, ProviderName.SqlCe,
+			ProviderName.DB2, ProviderName.DB2iSeries,TestProvName.AllInformix, ProviderName.SqlCe,
 			TestProvName.AllAccess, TestProvName.AllSapHana, ProviderName.SQLiteMS)]
 			string context)
 		{
@@ -504,7 +507,8 @@ namespace Tests.Linq
 
 		[Test]
 		public void Reverse([DataSources(
-			ProviderName.DB2, TestProvName.AllInformix, ProviderName.SqlCe,
+			ProviderName.DB2, ProviderName.DB2iSeries,
+			TestProvName.AllInformix, ProviderName.SqlCe,
 			TestProvName.AllAccess, TestProvName.AllSapHana, ProviderName.SQLiteMS)]
 			string context)
 		{

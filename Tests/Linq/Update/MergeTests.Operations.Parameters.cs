@@ -174,7 +174,7 @@ namespace Tests.xUpdate
 		}
 
 		[Test]
-		public void TestParametersInListSourceProperty([IncludeDataSources(ProviderName.DB2)] string context)
+		public void TestParametersInListSourceProperty([IncludeDataSources(ProviderName.DB2, ProviderName.DB2iSeries)] string context)
 		{
 			using (var db = new TestDataConnection(context))
 			{
@@ -386,7 +386,8 @@ namespace Tests.xUpdate
 		[Test]
 		public void TestParametersInInsertCreate([MergeDataContextSource(
 			false,
-			ProviderName.DB2, ProviderName.Firebird, TestProvName.Firebird3,
+			ProviderName.DB2, ProviderName.DB2iSeries,
+			ProviderName.Firebird, TestProvName.Firebird3,
 			TestProvName.AllOracle,
 			TestProvName.AllInformix, TestProvName.AllSapHana)]
 			string context)
@@ -427,7 +428,8 @@ namespace Tests.xUpdate
 		[Test]
 		public void TestParametersInUpdateExpression([MergeDataContextSource(
 			false,
-			ProviderName.DB2, ProviderName.Firebird, TestProvName.Firebird3,
+			ProviderName.DB2,ProviderName.DB2iSeries,
+			ProviderName.Firebird, TestProvName.Firebird3,
 			TestProvName.AllOracle,
 			TestProvName.AllInformix, TestProvName.AllSapHana)]
 			string context)
@@ -489,7 +491,7 @@ namespace Tests.xUpdate
 				Assert.AreEqual(1, rows);
 
 				var paramcount = 1;
-				if (context == ProviderName.DB2)
+				if (context == ProviderName.DB2 || context == ProviderName.DB2iSeries)
 					paramcount = 0;
 
 				Assert.AreEqual(paramcount, db.LastQuery.Count(_ => _ == GetParameterToken(context)));

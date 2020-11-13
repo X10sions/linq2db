@@ -110,6 +110,7 @@ namespace Tests.xUpdate
 						table = db.CreateTable<TestTable>("#" + tableName);
 						break;
 					case ProviderName.DB2 :
+					case ProviderName.DB2iSeries :
 						table = db.CreateTable<TestTable>(statementHeader:"DECLARE GLOBAL TEMPORARY TABLE SESSION.{0}");
 						break;
 					default:
@@ -169,6 +170,7 @@ namespace Tests.xUpdate
 						table = await db.CreateTableAsync<TestTable>("#" + tableName);
 						break;
 					case ProviderName.DB2 :
+					case ProviderName.DB2iSeries :
 						table = await db.CreateTableAsync<TestTable>(statementHeader:"DECLARE GLOBAL TEMPORARY TABLE SESSION.{0}");
 						break;
 					default:

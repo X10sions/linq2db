@@ -220,7 +220,8 @@ namespace Tests.Linq
 			TestProvName.AllAccess,
 			TestProvName.AllOracle,
 			TestProvName.AllMySql,
-			ProviderName.DB2)]
+			ProviderName.DB2, 
+			ProviderName.DB2iSeries)]
 			string context)
 		{
 			using (var db = GetDataContext(context))
@@ -241,7 +242,9 @@ namespace Tests.Linq
 			TestProvName.AllSapHana,
 			TestProvName.AllAccess,
 			TestProvName.AllOracle,
-			ProviderName.DB2)]
+			ProviderName.DB2,
+			ProviderName.DB2iSeries
+			)]
 			string context)
 		{
 			using (var db = GetDataContext(context))
@@ -256,7 +259,7 @@ namespace Tests.Linq
 
 		[Test]
 		public void SubSub1([DataSources(
-			ProviderName.SqlCe, ProviderName.Access, ProviderName.DB2,
+			ProviderName.SqlCe, ProviderName.Access, ProviderName.DB2,ProviderName.DB2iSeries,
 			TestProvName.AllOracle)]
 			string context)
 		{
@@ -296,6 +299,7 @@ namespace Tests.Linq
 		public void SubSub2([DataSources(
 			TestProvName.AllAccess,
 			ProviderName.DB2,
+			ProviderName.DB2iSeries,
 			TestProvName.AllOracle,
 			TestProvName.AllMySql,
 			ProviderName.SqlServer2000,
@@ -389,7 +393,7 @@ namespace Tests.Linq
 
 		[Test]
 		public void SubSub21([DataSources(
-			ProviderName.SqlCe, ProviderName.DB2,
+			ProviderName.SqlCe, ProviderName.DB2,ProviderName.DB2iSeries,
 			TestProvName.AllOracle,
 			ProviderName.Access)]
 			string context)
@@ -436,7 +440,7 @@ namespace Tests.Linq
 
 		[Test]
 		public void SubSub211([DataSources(
-			ProviderName.SqlCe, ProviderName.Access, ProviderName.DB2,
+			ProviderName.SqlCe, ProviderName.Access, ProviderName.DB2,ProviderName.DB2iSeries,
 			TestProvName.AllOracle)]
 			string context)
 		{
@@ -484,7 +488,7 @@ namespace Tests.Linq
 
 		[Test]
 		public void SubSub212([DataSources(
-			ProviderName.SqlCe, ProviderName.Access, ProviderName.DB2,
+			ProviderName.SqlCe, ProviderName.Access, ProviderName.DB2,ProviderName.DB2iSeries,
 			TestProvName.AllOracle)]
 			string context)
 		{
@@ -530,7 +534,7 @@ namespace Tests.Linq
 
 		[Test]
 		public void SubSub22([DataSources(
-			ProviderName.SqlCe, ProviderName.Access, ProviderName.DB2,
+			ProviderName.SqlCe, ProviderName.Access, ProviderName.DB2,ProviderName.DB2iSeries,
 			TestProvName.AllOracle, TestProvName.AllSapHana)]
 			string context)
 		{

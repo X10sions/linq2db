@@ -350,6 +350,37 @@ namespace LinqToDB
 			}
 		}
 
+		class DatePartBuilderDB2iSeries : Sql.IExtensionCallBuilder
+		{
+			public void Build(Sql.ISqExtensionBuilder builder)
+			{
+				string partStr;
+				var part = builder.GetValue<Sql.DateParts>("part");
+				switch(part)
+				{
+					case Sql.DateParts.Year: partStr = "To_Number(To_Char({date}, 'YYYY'))"; break;
+					case Sql.DateParts.Quarter: partStr = "To_Number(To_Char({date}, 'Q'))"; break;
+					case Sql.DateParts.Month: partStr = "To_Number(To_Char({date}, 'MM'))"; break;
+					case Sql.DateParts.DayOfYear: partStr = "To_Number(To_Char({date}, 'DDD'))"; break;
+					case Sql.DateParts.Day: partStr = "To_Number(To_Char({date}, 'DD'))"; break;
+					case Sql.DateParts.Week: partStr = "To_Number(To_Char({date}, 'WW'))"; break;
+					case Sql.DateParts.WeekDay: partStr = "DayOfWeek({date})"; break;
+					case Sql.DateParts.Hour: partStr = "To_Number(To_Char({date}, 'HH24'))"; break;
+					case Sql.DateParts.Minute: partStr = "To_Number(To_Char({date}, 'MI'))"; break;
+					case Sql.DateParts.Second: partStr = "To_Number(To_Char({date}, 'SS'))"; break;
+					case Sql.DateParts.Millisecond:
+					{
+						builder.Expression = "To_Number(To_Char({date}, 'FF'))";
+						builder.ResultExpression = builder.Div(builder.ConvertToSqlExpression(Precedence.Primary), 1000);
+						return;
+					}
+					default:
+						throw new ArgumentOutOfRangeException();
+				}
+
+				builder.Expression = partStr;
+			}
+		}
 		class DatePartBuilderFirebird: Sql.IExtensionCallBuilder
 		{
 			public void Build(Sql.ISqExtensionBuilder builder)
@@ -390,6 +421,7 @@ namespace LinqToDB
 
 		[Sql.Extension(               "DatePart",                                        ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(DatePartBuilder))]
 		[Sql.Extension(PN.DB2,        "",                                                ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(DatePartBuilderDB2))] // TODO: Not checked
+		[Sql.Extension(PN.DB2iSeries, "",                                                ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(DatePartBuilderDB2iSeries))] // TODO: Not checked
 		[Sql.Extension(PN.Informix,   "",                                                ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(DatePartBuilderInformix))] 
 		[Sql.Extension(PN.MySql,      "Extract({part} from {date})",                     ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(DatePartBuilderMySql))]
 		[Sql.Extension(PN.PostgreSQL, "Cast(Floor(Extract({part} from {date})) as int)", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(DatePartBuilderPostgre))]
@@ -493,6 +525,40 @@ namespace LinqToDB
 					case Sql.DateParts.Minute      : expStr = "{0} Minute";               break;
 					case Sql.DateParts.Second      : expStr = "{0} Second";               break;
 					case Sql.DateParts.Millisecond : expStr = "({0} * 1000) Microsecond"; break;
+					default:
+						throw new ArgumentOutOfRangeException();
+				}
+
+				builder.ResultExpression = builder.Add(
+					date,
+					new SqlExpression(typeof(TimeSpan?), expStr, Precedence.Primary, number),
+					typeof(DateTime?));
+			}
+		}
+
+		class DateAddBuilderDB2iSeries : Sql.IExtensionCallBuilder
+		{
+			public void Build(Sql.ISqExtensionBuilder builder)
+			{
+				var part    = builder.GetValue<Sql.DateParts>("part");
+				var date    = builder.GetExpression("date");
+				var number  = builder.GetExpression("number");
+
+				string expStr;
+
+				switch(part)
+				{
+					case Sql.DateParts.Year: expStr = "{0} Year"; break;
+					case Sql.DateParts.Quarter: expStr = "({0} * 3) Month"; break;
+					case Sql.DateParts.Month: expStr = "{0} Month"; break;
+					case Sql.DateParts.DayOfYear:
+					case Sql.DateParts.WeekDay:
+					case Sql.DateParts.Day: expStr = "{0} Day"; break;
+					case Sql.DateParts.Week: expStr = "({0} * 7) Day"; break;
+					case Sql.DateParts.Hour: expStr = "{0} Hour"; break;
+					case Sql.DateParts.Minute: expStr = "{0} Minute"; break;
+					case Sql.DateParts.Second: expStr = "{0} Second"; break;
+					case Sql.DateParts.Millisecond: expStr = "({0} * 1000) Microsecond"; break;
 					default:
 						throw new ArgumentOutOfRangeException();
 				}
@@ -730,6 +796,7 @@ namespace LinqToDB
 		[Sql.Extension("DateAdd"        , ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(DateAddBuilder))]
 		[Sql.Extension(PN.Oracle,     "", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(DateAddBuilderOracle))]
 		[Sql.Extension(PN.DB2,        "", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(DateAddBuilderDB2))]
+		[Sql.Extension(PN.DB2iSeries, "", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(DateAddBuilderDB2iSeries))]
 		[Sql.Extension(PN.Informix,   "", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(DateAddBuilderInformix))]
 		[Sql.Extension(PN.PostgreSQL, "", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(DateAddBuilderPostgreSQL))]
 		[Sql.Extension(PN.MySql,      "", ServerSideOnly = false, PreferServerSide = false, BuilderType = typeof(DateAddBuilderMySql))]
@@ -847,6 +914,48 @@ namespace LinqToDB
 			}
 		}
 
+		class DateDiffBuilderDB2iSeries : IExtensionCallBuilder
+		{
+			public void Build(ISqExtensionBuilder builder)
+			{
+				var part       = builder.GetValue<Sql.DateParts>(0);
+				var startDate  = builder.GetExpression(1);
+				var endDate    = builder.GetExpression(2);
+
+				var secondsExpr = builder.Mul<int>(builder.Sub<int>(
+						new SqlFunction(typeof(int), "Days", endDate),
+						new SqlFunction(typeof(int), "Days", startDate)),
+					new SqlValue(86400));
+
+				var midnight = builder.Sub<int>(
+					new SqlFunction(typeof(int), "MIDNIGHT_SECONDS", endDate),
+					new SqlFunction(typeof(int), "MIDNIGHT_SECONDS", startDate));
+
+				var resultExpr = builder.Add<int>(secondsExpr, midnight);
+
+				switch(part)
+				{
+					case Sql.DateParts.Day: resultExpr = builder.Div(resultExpr, 86400); break;
+					case Sql.DateParts.Hour: resultExpr = builder.Div(resultExpr, 3600); break;
+					case Sql.DateParts.Minute: resultExpr = builder.Div(resultExpr, 60); break;
+					case Sql.DateParts.Second: break;
+					case Sql.DateParts.Millisecond:
+						resultExpr = builder.Add<int>(
+							builder.Mul(resultExpr, 1000),
+							builder.Div(
+								builder.Sub<int>(
+									new SqlFunction(typeof(int), "MICROSECOND", endDate),
+									new SqlFunction(typeof(int), "MICROSECOND", startDate)),
+								1000));
+						break;
+					default:
+						throw new ArgumentOutOfRangeException();
+				}
+
+				builder.ResultExpression = resultExpr;
+			}
+		}
+
 		class DateDiffBuilderSQLite : IExtensionCallBuilder
 		{
 			public void Build(ISqExtensionBuilder builder)
@@ -896,6 +1005,7 @@ namespace LinqToDB
 		[Sql.Extension(            "DateDiff",      BuilderType = typeof(DateDiffBuilder))]
 		[Sql.Extension(PN.MySql,   "TIMESTAMPDIFF", BuilderType = typeof(DateDiffBuilder))]
 		[Sql.Extension(PN.DB2,     "",              BuilderType = typeof(DateDiffBuilderDB2))]
+		[Sql.Extension(PN.DB2iSeries, "",              BuilderType = typeof(DateDiffBuilderDB2iSeries))]
 		[Sql.Extension(PN.SapHana, "",              BuilderType = typeof(DateDiffBuilderSapHana))]
 		[Sql.Extension(PN.SQLite,  "",              BuilderType = typeof(DateDiffBuilderSQLite))]
 		[Sql.Extension(PN.PostgreSQL,  "",          BuilderType = typeof(DateDiffBuilderPostgreSql))]

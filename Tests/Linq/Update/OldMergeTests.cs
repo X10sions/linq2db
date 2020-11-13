@@ -61,7 +61,7 @@ namespace Tests.xUpdate
 			[DataSources(
 				false,
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllFirebird,
 				TestProvName.AllMySql,
 				TestProvName.AllPostgreSQL,
@@ -85,7 +85,7 @@ namespace Tests.xUpdate
 			[DataSources(
 				false,
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllFirebird,
 				TestProvName.AllMySql,
 				TestProvName.AllPostgreSQL,
@@ -109,7 +109,7 @@ namespace Tests.xUpdate
 			[DataSources(
 				false,
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllFirebird,
 				TestProvName.AllMySql,
 				TestProvName.AllPostgreSQL,
@@ -133,7 +133,7 @@ namespace Tests.xUpdate
 			[DataSources(
 				false,
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllFirebird,
 				TestProvName.AllMySql,
 				TestProvName.AllPostgreSQL,
@@ -157,7 +157,7 @@ namespace Tests.xUpdate
 			[DataSources(
 				false,
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllFirebird,
 				TestProvName.AllMySql,
 				TestProvName.AllPostgreSQL,
@@ -182,7 +182,7 @@ namespace Tests.xUpdate
 			[DataSources(
 				false,
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllFirebird,
 				TestProvName.AllMySql,
 				TestProvName.AllPostgreSQL,
@@ -209,7 +209,7 @@ namespace Tests.xUpdate
 			[DataSources(
 				false,
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllFirebird,
 				TestProvName.AllMySql,
 				TestProvName.AllPostgreSQL,
@@ -241,7 +241,7 @@ namespace Tests.xUpdate
 			[DataSources(
 				false,
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllInformix,
 				TestProvName.AllMySql,
 				TestProvName.AllPostgreSQL,
@@ -273,7 +273,7 @@ namespace Tests.xUpdate
 			[DataSources(
 				false,
 				TestProvName.AllAccess,
-				ProviderName.DB2,
+				ProviderName.DB2,ProviderName.DB2iSeries,
 				TestProvName.AllMySql,
 				TestProvName.AllPostgreSQL,
 				TestProvName.AllSQLite,
