@@ -893,7 +893,6 @@ namespace Tests.Linq
 		}
 
 		[ActiveIssue("CI: SQL0418N  The statement was not processed because the statement contains an invalid use of one of the following: an untyped parameter marker, the DEFAULT keyword, or a null", Configuration = ProviderName.DB2)]
-		[ActiveIssue("CI: SQL0418N  The statement was not processed because the statement contains an invalid use of one of the following: an untyped parameter marker, the DEFAULT keyword, or a null", Configuration = ProviderName.DB2iSeries)]
 		[Test]
 		public void TestConcatWithParameterProjection([DataSources] string context)
 		{

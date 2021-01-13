@@ -3,7 +3,6 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
-
 using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.DataProvider;
@@ -18,7 +17,6 @@ using NUnit.Framework;
 using StackExchange.Profiling;
 using StackExchange.Profiling.Data;
 using Tests.Model;
-
 using MySqlDataDateTime           = MySql.Data.Types.MySqlDateTime;
 using MySqlDataDecimal            = MySql.Data.Types.MySqlDecimal;
 using MySqlConnectorDateTime      = MySqlConnector.MySqlDateTime;
@@ -28,7 +26,6 @@ using LinqToDB.DataProvider.SQLite;
 using LinqToDB.DataProvider.DB2;
 using LinqToDB.DataProvider.DB2iSeries;
 using IBM.Data.DB2Types;
-using IBM.Data.DB2.i.DB2Types;
 using Tests.DataProvider;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Types;
@@ -39,6 +36,7 @@ using LinqToDB.DataProvider.PostgreSQL;
 using System.Threading.Tasks;
 using LinqToDB.Common;
 #if NET472
+using IBM.Data.DB2.iSeries;
 using IBM.Data.Informix;
 #endif
 
@@ -547,9 +545,9 @@ namespace Tests.Data
 		{
 			var unmapped = type == ConnectionType.MiniProfilerNoMappings;
 #if NET472
-			using(var db = CreateDataConnection(new DB2DataProvider(ProviderName.DB2iSeries, DB2iSeriesVersion.V7R4), context, type, "IBM.Data.DB2.iSeries.iDB2Connection, IBM.Data.DB2.iSeries"))
+			using(var db = CreateDataConnection(new DB2iSeriesDataProvider(ProviderName.DB2iSeries, DB2iSeriesVersion.V7_4), context, type, "IBM.Data.DB2.iSeries.iDB2Connection, IBM.Data.DB2.iSeries"))
 #else
-			using (var db = CreateDataConnection(new DB2DataProvider(ProviderName.DB2iSeries, DB2iSeriesVersion.V7R4), context, type, "IBM.Data.DB2.Core.iDB2Connection, IBM.Data.DB2.Core"))
+			using(var db = CreateDataConnection(new DB2iSeriesDataProvider(ProviderName.DB2iSeries, DB2iSeriesVersion.V7_4), context, type, "IBM.Data.DB2.Core.iDB2Connection, IBM.Data.DB2.Core"))
 #endif
 			{
 				var trace = string.Empty;
@@ -562,14 +560,15 @@ namespace Tests.Data
 				// we have DB2iSeries tests for all types, so here we will test only one type (they all look the same)
 				// test provider-specific type readers
 				var longValue = -12335L;
-				Assert.AreEqual(longValue, db.Execute<iDB2Int64>("SELECT Cast(@p as bigint) FROM SYSIBM.SYSDUMMY1", new DataParameter("p", longValue, DataType.Int64)).Value);
+				Assert.AreEqual(longValue, db.Execute<iDB2BigInt >("SELECT Cast(@p as bigint) FROM SYSIBM.SYSDUMMY1", new DataParameter("p", longValue, DataType.Int64)).Value);
 				var rawValue = db.Execute<object>("SELECT Cast(@p as bigint) FROM SYSIBM.SYSDUMMY1", new DataParameter("p", longValue, DataType.Int64));
+
 				// iDB2DataReader returns provider-specific types only if asked explicitly
 				Assert.True(rawValue is long);
 				Assert.AreEqual(longValue, (long)rawValue);
 
 				// test provider-specific parameter values
-				Assert.AreEqual(longValue, db.Execute<long>("SELECT Cast(@p as bigint) FROM SYSIBM.SYSDUMMY1", new DataParameter("p", new  iDB2Int64(longValue), DataType.Int64)));
+				Assert.AreEqual(longValue, db.Execute<long>("SELECT Cast(@p as bigint) FROM SYSIBM.SYSDUMMY1", new DataParameter("p", new  iDB2BigInt(longValue), DataType.Int64)));
 
 				//// assert provider-specific parameter type name
 				Assert.AreEqual(2, db.Execute<int>("SELECT ID FROM AllTypes WHERE blobDataType = @p", new DataParameter("p", new byte[] { 50, 51, 52 }, DataType.Blob)));
@@ -594,10 +593,9 @@ namespace Tests.Data
 
 				// test connection server type property
 				var cs = DataConnection.GetConnectionString(GetProviderName(context, out var _));
-				using(var cn = DB2iSeriesProviderAdapter.GetInstance().CreateConnection(cs))
+				using(var cn = DB2iSeriesProviderAdapter.Instance.CreateConnection(cs))
 				{
 					cn.Open();
-
 					Assert.AreEqual(DB2iSeriesProviderAdapter.DB2iSeriesServerTypes.DB2_UW, cn.eServerType);
 				}
 			}

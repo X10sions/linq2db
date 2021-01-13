@@ -21,18 +21,19 @@ namespace LinqToDB.DataProvider.DB2iSeries
 
 		//public static string GetQuotedLibList(this DataConnection dataConnection) => "'" + string.Join("','", dataConnection.GetLibList()) + "'";
 
-		public static Version GetVersion(this DbConnection dbConnection)
-		{
-			var doOpenclose = dbConnection.State != ConnectionState.Open;
-			if(doOpenclose)
-				dbConnection.Open();
-			var serverVersionParts = dbConnection.ServerVersion.Split('.');
-			var major = int.Parse(serverVersionParts[0]);
-			var minor = int.Parse(serverVersionParts[1]);
-			var build = int.Parse(serverVersionParts[2]);
-			if(doOpenclose)
-				dbConnection.Close();
-			return new Version(major, minor, build);
+		public static Version GetVersion(this IDbConnection connection) {
+			if(connection is DbConnection) {
+				var dbConnection = connection as DbConnection;
+				var doOpenclose = dbConnection.State != ConnectionState.Open;
+				if(doOpenclose)
+					dbConnection.Open();
+				//var version = AsVersion(dbConnection.ServerVersion);
+				var version = new Version(dbConnection.ServerVersion.Split(' ')[0]);
+				if(doOpenclose)
+					dbConnection.Close();
+				return version;
+			}
+			return new Version();
 		}
 
 		public static Version GetVersion(this IDataProvider dataProvider, string connectionString)

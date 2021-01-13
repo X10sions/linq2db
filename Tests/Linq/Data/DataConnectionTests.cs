@@ -1,31 +1,25 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
-using NUnit.Framework;
-
 using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.DataProvider;
 using LinqToDB.DataProvider.DB2;
-using LinqToDB.DataProvider.DB2iSeries;
 using LinqToDB.DataProvider.SqlServer;
+using NUnit.Framework;
 
 namespace Tests.Data
 {
-	using Microsoft.Extensions.DependencyInjection;
-
 	using System.Collections.Generic;
-	using System.Runtime.InteropServices;
 	using System.Transactions;
 	using LinqToDB.AspNet;
 	using LinqToDB.Data.RetryPolicy;
 	using LinqToDB.Mapping;
+	using Microsoft.Extensions.DependencyInjection;
 	using Model;
 
 	[TestFixture]
@@ -37,9 +31,9 @@ namespace Tests.Data
 			var connectionString = DataConnection.GetConnectionString(context);
 			var dataProvider = DataConnection.GetDataProvider(context);
 
-			using (var conn = new DataConnection(dataProvider, connectionString))
+			using(var conn = new DataConnection(dataProvider, connectionString))
 			{
-				Assert.That(conn.Connection.State,    Is.EqualTo(ConnectionState.Open));
+				Assert.That(conn.Connection.State, Is.EqualTo(ConnectionState.Open));
 				Assert.That(conn.ConfigurationString, Is.Null);
 			}
 		}
@@ -47,9 +41,9 @@ namespace Tests.Data
 		[Test]
 		public void Test2()
 		{
-			using (var conn = new DataConnection())
+			using(var conn = new DataConnection())
 			{
-				Assert.That(conn.Connection.State,    Is.EqualTo(ConnectionState.Open));
+				Assert.That(conn.Connection.State, Is.EqualTo(ConnectionState.Open));
 				Assert.That(conn.ConfigurationString, Is.EqualTo(DataConnection.DefaultConfiguration));
 			}
 		}
@@ -64,18 +58,18 @@ namespace Tests.Data
 			TestProvName.AllAccess)]
 			string context)
 		{
-			using (var conn = new DataConnection(context))
+			using(var conn = new DataConnection(context))
 			{
-				Assert.That(conn.Connection.State,    Is.EqualTo(ConnectionState.Open));
+				Assert.That(conn.Connection.State, Is.EqualTo(ConnectionState.Open));
 				Assert.That(conn.ConfigurationString, Is.EqualTo(context));
 
-				if (context.EndsWith(".2005"))
+				if(context.EndsWith(".2005"))
 				{
 					var sdp = conn.DataProvider;
 					Assert.That(sdp.Name, Is.EqualTo("SqlServer.2005"));
 				}
 
-				if (context.EndsWith(".2008"))
+				if(context.EndsWith(".2008"))
 				{
 					var sdp = conn.DataProvider;
 					Assert.That(sdp.Name, Is.EqualTo("SqlServer.2008"));
@@ -86,7 +80,7 @@ namespace Tests.Data
 		[Test]
 		public void EnumExecuteScalarTest()
 		{
-			using (var dbm = new DataConnection())
+			using(var dbm = new DataConnection())
 			{
 				var gender = dbm.Execute<Gender>("select 'M'");
 
@@ -97,12 +91,12 @@ namespace Tests.Data
 		[Test]
 		public void CloneTest([DataSources(false)] string context)
 		{
-			using (var con = new DataConnection(context))
+			using(var con = new DataConnection(context))
 			{
 				var dbName = con.Connection.Database;
 
-				for (var i = 0; i < 150; i++)
-					using (var clone = (DataConnection)con.Clone())
+				for(var i = 0; i < 150; i++)
+					using(var clone = (DataConnection)con.Clone())
 						dbName = clone.Connection.Database;
 			}
 		}
@@ -114,7 +108,7 @@ namespace Tests.Data
 
 			IDataProvider dataProvider;
 
-			switch (context)
+			switch(context)
 			{
 				case ProviderName.DB2:
 				{
@@ -130,17 +124,13 @@ namespace Tests.Data
 				}
 
 				case ProviderName.DB2iSeries:
-				{
-					dataProvider = DataConnection.GetDataProvider("DB2iSeries", connectionString)!;
-
+					dataProvider = DataConnection.GetDataProvider(ProviderName.DB2iSeries, connectionString)!;
 					Assert.That(dataProvider, Is.TypeOf<DB2iSeriesDataProvider>());
 
 					var dataProvider = (DB2iSeriesDataProvider)dataProvider;
-
-					Assert.That(dataProvider.Version, Is.EqualTo(DB2iSeriesVersion.V7R4));
+					Assert.That(dataProvider.Version, Is.EqualTo(DB2iSeriesVersion.V7_4));
 
 					break;
-				}
 
 				case ProviderName.SqlServer2005:
 				{
@@ -215,22 +205,22 @@ namespace Tests.Data
 				}
 
 				case ProviderName.SqlServer2017:
-					{
-						dataProvider = DataConnection.GetDataProvider("SqlServer", "SqlServer.2017", connectionString)!;
+				{
+					dataProvider = DataConnection.GetDataProvider("SqlServer", "SqlServer.2017", connectionString)!;
 
-						Assert.That(dataProvider, Is.TypeOf<SqlServerDataProvider>());
+					Assert.That(dataProvider, Is.TypeOf<SqlServerDataProvider>());
 
-						var sqlServerDataProvider = (SqlServerDataProvider)dataProvider;
+					var sqlServerDataProvider = (SqlServerDataProvider)dataProvider;
 
-						Assert.That(sqlServerDataProvider.Version, Is.EqualTo(SqlServerVersion.v2017));
+					Assert.That(sqlServerDataProvider.Version, Is.EqualTo(SqlServerVersion.v2017));
 
-						dataProvider = DataConnection.GetDataProvider("System.Data.SqlClient", connectionString)!;
-						sqlServerDataProvider = (SqlServerDataProvider)dataProvider;
+					dataProvider = DataConnection.GetDataProvider("System.Data.SqlClient", connectionString)!;
+					sqlServerDataProvider = (SqlServerDataProvider)dataProvider;
 
-						Assert.That(sqlServerDataProvider.Version, Is.EqualTo(SqlServerVersion.v2017));
+					Assert.That(sqlServerDataProvider.Version, Is.EqualTo(SqlServerVersion.v2017));
 
-						break;
-					}
+					break;
+				}
 			}
 		}
 
@@ -239,7 +229,7 @@ namespace Tests.Data
 		{
 			var opened = false;
 			var openedAsync = false;
-			using (var conn = new DataConnection())
+			using(var conn = new DataConnection())
 			{
 				conn.OnConnectionOpened += (dc, cn) => opened = true;
 				conn.OnConnectionOpenedAsync += async (dc, cn, token) => await Task.Run(() => openedAsync = true);
@@ -256,7 +246,7 @@ namespace Tests.Data
 		{
 			var opened = false;
 			var openedAsync = false;
-			using (var conn = new DataConnection())
+			using(var conn = new DataConnection())
 			{
 				conn.OnConnectionOpened += (dc, cn) => opened = true;
 				conn.OnConnectionOpenedAsync += async (dc, cn, token) => await Task.Run(() => openedAsync = true);
@@ -271,7 +261,7 @@ namespace Tests.Data
 		[Test]
 		public void TestOpenEventWithoutHandlers()
 		{
-			using (var conn = new DataConnection())
+			using(var conn = new DataConnection())
 			{
 				Assert.That(conn.Connection.State, Is.EqualTo(ConnectionState.Open));
 			}
@@ -280,7 +270,7 @@ namespace Tests.Data
 		[Test]
 		public async Task TestAsyncOpenEventWithoutHandlers()
 		{
-			using (var conn = new DataConnection())
+			using(var conn = new DataConnection())
 			{
 				await conn.SelectAsync(() => 1);
 			}
@@ -326,7 +316,7 @@ namespace Tests.Data
 		{
 			var collection = new ServiceCollection();
 			collection.AddLinqToDbContext<DbConnection1>((provider, options) => options.UseConfigurationString(context));
-			collection.AddLinqToDbContext<DbConnection2>((provider, options) => {});
+			collection.AddLinqToDbContext<DbConnection2>((provider, options) => { });
 
 			var serviceProvider = collection.BuildServiceProvider();
 			var c1 = serviceProvider.GetService<DbConnection1>();
@@ -346,7 +336,7 @@ namespace Tests.Data
 		[ActiveIssue("Fails due to connection limit for development version when run with nonmanaged provider", Configuration = ProviderName.SybaseManaged)]
 		public void MultipleConnectionsTest([DataSources(TestProvName.AllInformix)] string context)
 		{
-			using (new DisableBaseline("Multi-threading"))
+			using(new DisableBaseline("Multi-threading"))
 			{
 				var exceptions = new ConcurrentBag<Exception>();
 
@@ -366,10 +356,10 @@ namespace Tests.Data
 					}))
 					.ToArray();
 
-				foreach (var thread in threads) thread.Start();
-				foreach (var thread in threads) thread.Join();
+				foreach(var thread in threads) thread.Start();
+				foreach(var thread in threads) thread.Join();
 
-				if (exceptions.Count > 0)
+				if(exceptions.Count > 0)
 					throw new AggregateException(exceptions);
 			}
 		}
@@ -391,7 +381,7 @@ namespace Tests.Data
 
 				db.Dispose();
 
-				if (tid == Thread.CurrentThread.ManagedThreadId)
+				if(tid == Thread.CurrentThread.ManagedThreadId)
 					Assert.Inconclusive("Executed synchronously due to lack of async support or there were no underlying async operations");
 			}
 		}
@@ -411,7 +401,7 @@ namespace Tests.Data
 
 				await db.DisposeAsync();
 
-				if (tid == Thread.CurrentThread.ManagedThreadId)
+				if(tid == Thread.CurrentThread.ManagedThreadId)
 					Assert.Inconclusive("Executed synchronously due to lack of async support or there were no underlying async operations");
 			}
 		}
@@ -421,16 +411,16 @@ namespace Tests.Data
 		{
 			var open = false;
 			var openAsync = false;
-			using (var conn = new DataConnection())
+			using(var conn = new DataConnection())
 			{
 				conn.OnBeforeConnectionOpen += (dc, cn) =>
 				{
-					if (cn.State == ConnectionState.Closed)
+					if(cn.State == ConnectionState.Closed)
 						open = true;
 				};
 				conn.OnBeforeConnectionOpenAsync += async (dc, cn, token) => await Task.Run(() =>
 				{
-					if (cn.State == ConnectionState.Closed)
+					if(cn.State == ConnectionState.Closed)
 						openAsync = true;
 				});
 				Assert.False(open);
@@ -446,16 +436,16 @@ namespace Tests.Data
 		{
 			var open = false;
 			var openAsync = false;
-			using (var conn = new DataConnection())
+			using(var conn = new DataConnection())
 			{
 				conn.OnBeforeConnectionOpen += (dc, cn) =>
 					{
-						if (cn.State == ConnectionState.Closed)
+						if(cn.State == ConnectionState.Closed)
 							open = true;
 					};
-				conn.OnBeforeConnectionOpenAsync += async (dc, cn, token) => await Task.Run(() => 
+				conn.OnBeforeConnectionOpenAsync += async (dc, cn, token) => await Task.Run(() =>
 						{
-							if (cn.State == ConnectionState.Closed)
+							if(cn.State == ConnectionState.Closed)
 								openAsync = true;
 						});
 				Assert.False(open);
@@ -470,7 +460,7 @@ namespace Tests.Data
 		[SkipCI]
 		public void CommandTimeoutTest([IncludeDataSources(ProviderName.SqlServer2014)] string context)
 		{
-			using (var db = new TestDataConnection(context))
+			using(var db = new TestDataConnection(context))
 			{
 				var forUpdate = db.Person.First();
 				db.QueryHints.Add("WAITFOR DELAY '00:01';");
@@ -513,7 +503,7 @@ namespace Tests.Data
 		[Test]
 		public void TestCloneOnEntityCreated([DataSources(false)] string context)
 		{
-			using (var db = new DataConnection(context))
+			using(var db = new DataConnection(context))
 			{
 				var size = db.GetTable<Person>().ToList().Count;
 
@@ -527,7 +517,7 @@ namespace Tests.Data
 				db.GetTable<Person>().ToList();
 				Assert.AreEqual(size, counter);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					// tests different clone execution branches for MARS-enabled and disabled connections
 					counter = 0;
@@ -547,7 +537,7 @@ namespace Tests.Data
 					Assert.AreEqual(size, counter);
 				}
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					counter = 0;
 					cdb.GetTable<Person>().ToList();
@@ -570,14 +560,14 @@ namespace Tests.Data
 		[Test]
 		public void TestCloneCommandTimeout([DataSources(false)] string context)
 		{
-			using (var db = new DataConnection(context))
+			using(var db = new DataConnection(context))
 			{
 				// to enable MARS-enabled cloning branch
 				var _ = db.Connection;
 
 				Assert.AreEqual(-1, db.CommandTimeout);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(-1, cdb.CommandTimeout);
 				}
@@ -586,7 +576,7 @@ namespace Tests.Data
 
 				Assert.AreEqual(0, db.CommandTimeout);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(0, cdb.CommandTimeout);
 				}
@@ -595,7 +585,7 @@ namespace Tests.Data
 
 				Assert.AreEqual(10, db.CommandTimeout);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(10, cdb.CommandTimeout);
 				}
@@ -603,7 +593,7 @@ namespace Tests.Data
 				db.CommandTimeout = -5;
 				Assert.AreEqual(-1, db.CommandTimeout);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(-1, cdb.CommandTimeout);
 				}
@@ -613,14 +603,14 @@ namespace Tests.Data
 		[Test]
 		public void TestCloneInlineParameters([DataSources(false)] string context)
 		{
-			using (var db = new DataConnection(context))
+			using(var db = new DataConnection(context))
 			{
 				// to enable MARS-enabled cloning branch
 				var _ = db.Connection;
 
 				Assert.False(db.InlineParameters);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.False(cdb.InlineParameters);
 				}
@@ -629,7 +619,7 @@ namespace Tests.Data
 
 				Assert.True(db.InlineParameters);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.True(cdb.InlineParameters);
 				}
@@ -637,7 +627,7 @@ namespace Tests.Data
 				db.InlineParameters = false;
 				Assert.False(db.InlineParameters);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.False(cdb.InlineParameters);
 				}
@@ -647,14 +637,14 @@ namespace Tests.Data
 		[Test]
 		public void TestCloneQueryHints([DataSources(false)] string context)
 		{
-			using (var db = new DataConnection(context))
+			using(var db = new DataConnection(context))
 			{
 				// to enable MARS-enabled cloning branch
 				var _ = db.Connection;
 
 				Assert.AreEqual(0, db.QueryHints.Count);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(0, cdb.QueryHints.Count);
 				}
@@ -664,7 +654,7 @@ namespace Tests.Data
 				Assert.AreEqual(1, db.QueryHints.Count);
 				Assert.AreEqual("test", db.QueryHints[0]);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(1, cdb.QueryHints.Count);
 					Assert.AreEqual("test", cdb.QueryHints[0]);
@@ -677,7 +667,7 @@ namespace Tests.Data
 
 				Assert.AreEqual(0, db.QueryHints.Count);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(0, cdb.QueryHints.Count);
 				}
@@ -687,14 +677,14 @@ namespace Tests.Data
 		[Test]
 		public void TestCloneThrowOnDisposed([DataSources(false)] string context)
 		{
-			using (var db = new DataConnection(context))
+			using(var db = new DataConnection(context))
 			{
 				// to enable MARS-enabled cloning branch
 				var _ = db.Connection;
 
 				Assert.IsNull(db.ThrowOnDisposed);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.IsNull(cdb.ThrowOnDisposed);
 				}
@@ -703,7 +693,7 @@ namespace Tests.Data
 
 				Assert.False(db.ThrowOnDisposed);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.False(cdb.ThrowOnDisposed);
 				}
@@ -712,7 +702,7 @@ namespace Tests.Data
 
 				Assert.True(db.ThrowOnDisposed);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.True(cdb.ThrowOnDisposed);
 				}
@@ -720,7 +710,7 @@ namespace Tests.Data
 				db.ThrowOnDisposed = null;
 				Assert.IsNull(db.ThrowOnDisposed);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.IsNull(cdb.ThrowOnDisposed);
 				}
@@ -730,7 +720,7 @@ namespace Tests.Data
 		[Test]
 		public void TestCloneOnTraceConnection([DataSources(false)] string context)
 		{
-			using (var db = new DataConnection(context))
+			using(var db = new DataConnection(context))
 			{
 				// to enable MARS-enabled cloning branch
 				var _ = db.Connection;
@@ -738,7 +728,7 @@ namespace Tests.Data
 
 				Assert.AreEqual(DataConnection.OnTrace, db.OnTraceConnection);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(DataConnection.OnTrace, cdb.OnTraceConnection);
 				}
@@ -747,7 +737,7 @@ namespace Tests.Data
 
 				Assert.AreEqual(onTrace, db.OnTraceConnection);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(onTrace, cdb.OnTraceConnection);
 				}
@@ -756,7 +746,7 @@ namespace Tests.Data
 
 				Assert.AreEqual(DataConnection.OnTrace, db.OnTraceConnection);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(DataConnection.OnTrace, cdb.OnTraceConnection);
 				}
@@ -771,7 +761,7 @@ namespace Tests.Data
 			var closing = 0;
 			var closed  = 0;
 
-			using (var db = new DataConnection(context))
+			using(var db = new DataConnection(context))
 			{
 				// to enable MARS-enabled cloning branch
 				var _ = db.Connection;
@@ -783,7 +773,7 @@ namespace Tests.Data
 				Assert.AreEqual(0, closed);
 				_ = db.Connection;
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					_ = cdb.Connection;
 					Assert.AreEqual(0, closing);
@@ -803,10 +793,10 @@ namespace Tests.Data
 				Assert.AreEqual(1, closed);
 				_ = db.Connection;
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					closing = 0;
-					closed  = 0;
+					closed = 0;
 					_ = cdb.Connection;
 					Assert.AreEqual(0, closing);
 					Assert.AreEqual(0, closed);
@@ -815,9 +805,9 @@ namespace Tests.Data
 					Assert.AreEqual(1, closed);
 
 					closing = 0;
-					closed  = 0;
+					closed = 0;
 					db.OnClosing -= OnClosing;
-					db.OnClosed  -= OnClosed;
+					db.OnClosed -= OnClosed;
 					_ = cdb.Connection;
 					cdb.Close();
 					Assert.AreEqual(1, closing);
@@ -825,7 +815,7 @@ namespace Tests.Data
 				}
 
 				closing = 0;
-				closed  = 0;
+				closed = 0;
 				_ = db.Connection;
 				Assert.AreEqual(0, closing);
 				Assert.AreEqual(0, closed);
@@ -834,7 +824,7 @@ namespace Tests.Data
 				Assert.AreEqual(0, closed);
 				_ = db.Connection;
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					_ = cdb.Connection;
 					Assert.AreEqual(0, closing);
@@ -855,7 +845,7 @@ namespace Tests.Data
 			var open   = 0;
 			var opened = 0;
 
-			using (var db = new DataConnection(context))
+			using(var db = new DataConnection(context))
 			{
 				Assert.AreEqual(0, open);
 				Assert.AreEqual(0, opened);
@@ -863,7 +853,7 @@ namespace Tests.Data
 				Assert.AreEqual(0, open);
 				Assert.AreEqual(0, opened);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(0, open);
 					Assert.AreEqual(0, opened);
@@ -874,37 +864,37 @@ namespace Tests.Data
 
 				db.Close();
 				db.OnBeforeConnectionOpen += OnBeforeConnectionOpen;
-				db.OnConnectionOpened     += OnConnectionOpened;
+				db.OnConnectionOpened += OnConnectionOpened;
 				Assert.AreEqual(0, open);
 				Assert.AreEqual(0, opened);
 				_ = db.Connection;
 				Assert.AreEqual(1, open);
 				Assert.AreEqual(1, opened);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
-					open   = 0;
+					open = 0;
 					opened = 0;
 					Assert.AreEqual(0, open);
 					Assert.AreEqual(0, opened);
 					cdb.Connection.Close();
-					open   = 0;
+					open = 0;
 					opened = 0;
 					_ = cdb.Connection;
 					Assert.AreEqual(1, open);
 					Assert.AreEqual(1, opened);
 
-					open   = 0;
+					open = 0;
 					opened = 0;
 					cdb.Close();
 					db.OnBeforeConnectionOpen -= OnBeforeConnectionOpen;
-					db.OnConnectionOpened     -= OnConnectionOpened;
+					db.OnConnectionOpened -= OnConnectionOpened;
 					_ = cdb.Connection;
 					Assert.AreEqual(1, open);
 					Assert.AreEqual(1, opened);
 				}
 
-				open   = 0;
+				open = 0;
 				opened = 0;
 				db.Close();
 				Assert.AreEqual(0, open);
@@ -913,7 +903,7 @@ namespace Tests.Data
 				Assert.AreEqual(0, open);
 				Assert.AreEqual(0, opened);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(0, open);
 					Assert.AreEqual(0, opened);
@@ -924,7 +914,7 @@ namespace Tests.Data
 			}
 
 			void OnBeforeConnectionOpen(DataConnection dc, IDbConnection cn) => open++;
-			void OnConnectionOpened    (DataConnection dc, IDbConnection cn) => opened++;
+			void OnConnectionOpened(DataConnection dc, IDbConnection cn) => opened++;
 		}
 
 		[Test]
@@ -933,7 +923,7 @@ namespace Tests.Data
 			var open   = 0;
 			var opened = 0;
 
-			using (var db = new DataConnection(context))
+			using(var db = new DataConnection(context))
 			{
 				Assert.AreEqual(0, open);
 				Assert.AreEqual(0, opened);
@@ -941,7 +931,7 @@ namespace Tests.Data
 				Assert.AreEqual(0, open);
 				Assert.AreEqual(0, opened);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(0, open);
 					Assert.AreEqual(0, opened);
@@ -952,37 +942,37 @@ namespace Tests.Data
 
 				db.Close();
 				db.OnBeforeConnectionOpenAsync += OnBeforeConnectionOpenAsync;
-				db.OnConnectionOpenedAsync     += OnConnectionOpenedAsync;
+				db.OnConnectionOpenedAsync += OnConnectionOpenedAsync;
 				Assert.AreEqual(0, open);
 				Assert.AreEqual(0, opened);
 				await db.EnsureConnectionAsync();
 				Assert.AreEqual(1, open);
 				Assert.AreEqual(1, opened);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
-					open   = 0;
+					open = 0;
 					opened = 0;
 					Assert.AreEqual(0, open);
 					Assert.AreEqual(0, opened);
 					cdb.Connection.Close();
-					open   = 0;
+					open = 0;
 					opened = 0;
 					await cdb.EnsureConnectionAsync();
 					Assert.AreEqual(1, open);
 					Assert.AreEqual(1, opened);
 
-					open   = 0;
+					open = 0;
 					opened = 0;
 					cdb.Close();
 					db.OnBeforeConnectionOpenAsync -= OnBeforeConnectionOpenAsync;
-					db.OnConnectionOpenedAsync     -= OnConnectionOpenedAsync;
+					db.OnConnectionOpenedAsync -= OnConnectionOpenedAsync;
 					await cdb.EnsureConnectionAsync();
 					Assert.AreEqual(1, open);
 					Assert.AreEqual(1, opened);
 				}
 
-				open   = 0;
+				open = 0;
 				opened = 0;
 				db.Close();
 				Assert.AreEqual(0, open);
@@ -991,7 +981,7 @@ namespace Tests.Data
 				Assert.AreEqual(0, open);
 				Assert.AreEqual(0, opened);
 
-				using (var cdb = (DataConnection)((IDataContext)db).Clone(true))
+				using(var cdb = (DataConnection)((IDataContext)db).Clone(true))
 				{
 					Assert.AreEqual(0, open);
 					Assert.AreEqual(0, opened);
@@ -1011,7 +1001,7 @@ namespace Tests.Data
 			{
 				opened++;
 				return Task.CompletedTask;
-		}
+			}
 		}
 
 		// strange provider errors, review in v3 with more recent providers
@@ -1028,22 +1018,22 @@ namespace Tests.Data
 		[Test]
 		public void TestDisposeFlagCloning([DataSources(false)] string context, [Values] bool dispose)
 		{
-			using (var db = new DataConnection(context))
+			using(var db = new DataConnection(context))
 			{
 				var cn = db.Connection;
-				using (var testDb = new DataConnection(db.DataProvider, cn, dispose))
+				using(var testDb = new DataConnection(db.DataProvider, cn, dispose))
 				{
 					Assert.AreEqual(ConnectionState.Open, cn.State);
 
 					IDbConnection? clonedConnection = null;
-					using (var clonedDb = (DataConnection)((IDataContext)testDb).Clone(true))
+					using(var clonedDb = (DataConnection)((IDataContext)testDb).Clone(true))
 					{
 						clonedConnection = clonedDb.Connection;
 
 						// fails in v2 for MARS-enabled connections, already fixed in v3
 						Assert.AreEqual(db.IsMarsEnabled, testDb.IsMarsEnabled);
 
-						if (testDb.IsMarsEnabled)
+						if(testDb.IsMarsEnabled)
 						{
 							// connection reused
 							Assert.AreEqual(cn, clonedConnection);
@@ -1057,7 +1047,7 @@ namespace Tests.Data
 						}
 					}
 
-					if (testDb.IsMarsEnabled)
+					if(testDb.IsMarsEnabled)
 					{
 						// cloned DC doesn't dispose parent connection
 						Assert.AreEqual(ConnectionState.Open, cn.State);
@@ -1070,7 +1060,7 @@ namespace Tests.Data
 						{
 							Assert.AreEqual(ConnectionState.Closed, clonedConnection.State);
 						}
-						catch (ObjectDisposedException)
+						catch(ObjectDisposedException)
 						{
 							// API consistency FTW!
 						}
@@ -1121,19 +1111,19 @@ namespace Tests.Data
 		public void TestDisposeFlagCloning962Test1(
 			[DataSources(false)] string context, [Values] bool withScope)
 		{
-			if (withScope && (
-				context == ProviderName.DB2            ||
-				context == ProviderName.DB2iSeries     ||
-				context == ProviderName.InformixDB2    ||
+			if(withScope && (
+				context == ProviderName.DB2 ||
+				context == ProviderName.DB2iSeries ||
+				context == ProviderName.InformixDB2 ||
 				context == ProviderName.MySqlConnector ||
-				context == ProviderName.SapHanaNative  ||
-				context == ProviderName.SqlCe          ||
-				context == ProviderName.Sybase         ||
-				context.Contains("Firebird")           ||
-				context.Contains("Oracle")             ||
-				context.Contains("PostgreSQL")         ||
-				context.Contains("SqlServer")          ||
-				context.Contains("SqlAzure")           ||
+				context == ProviderName.SapHanaNative ||
+				context == ProviderName.SqlCe ||
+				context == ProviderName.Sybase ||
+				context.Contains("Firebird") ||
+				context.Contains("Oracle") ||
+				context.Contains("PostgreSQL") ||
+				context.Contains("SqlServer") ||
+				context.Contains("SqlAzure") ||
 				context.Contains(ProviderName.SQLiteClassic)
 				))
 			{
@@ -1151,13 +1141,13 @@ namespace Tests.Data
 				Assert.Inconclusive("Provider not configured or has issues with TransactionScope or doesn't support DDL in distributed transactions");
 			}
 
-			TransactionScope? scope = withScope ? new TransactionScope() : null;
+			var scope = withScope ? new TransactionScope() : null;
 			try
 			{
-				using (new AllowMultipleQuery())
-				using (var db = new DataConnection(context))
-				using (db.CreateLocalTable(Category.Data))
-				using (db.CreateLocalTable(Product.Data))
+				using(new AllowMultipleQuery())
+				using(var db = new DataConnection(context))
+				using(db.CreateLocalTable(Category.Data))
+				using(db.CreateLocalTable(Product.Data))
 				{
 					var categoryDtos = db.GetTable<Category>().LoadWith(c => c.Products).ToList();
 
@@ -1175,22 +1165,22 @@ namespace Tests.Data
 		public void TestDisposeFlagCloning962Test2(
 			[DataSources(false)] string context, [Values] bool withScope)
 		{
-			if (withScope && (
-				context == ProviderName.DB2                 ||
-				context == ProviderName.DB2iSeries          ||
-				context == ProviderName.InformixDB2         ||
-				context == ProviderName.SapHanaOdbc         ||
-				context == ProviderName.SqlCe               ||
-				context == ProviderName.Sybase              ||
+			if(withScope && (
+				context == ProviderName.DB2 ||
+				context == ProviderName.DB2iSeries ||
+				context == ProviderName.InformixDB2 ||
+				context == ProviderName.SapHanaOdbc ||
+				context == ProviderName.SqlCe ||
+				context == ProviderName.Sybase ||
 #if !NET472
 				(context.Contains("Oracle") && context.Contains("Managed")) ||
 				context == ProviderName.SapHanaNative       ||
 #endif
 				TestProvName.AllMySqlData.Contains(context) ||
-				context.StartsWith("Access")                ||
-				context.Contains("SqlServer")               ||
-				context.Contains("SqlAzure")                ||
-				context.Contains("PostgreSQL")              ||
+				context.StartsWith("Access") ||
+				context.Contains("SqlServer") ||
+				context.Contains("SqlAzure") ||
+				context.Contains("PostgreSQL") ||
 				context.Contains(ProviderName.SQLiteClassic)
 				))
 			{
@@ -1210,15 +1200,15 @@ namespace Tests.Data
 				Assert.Inconclusive("Provider not configured or has issues with TransactionScope");
 			}
 
-			TransactionScope? scope = withScope ? new TransactionScope() : null;
+			var scope = withScope ? new TransactionScope() : null;
 			try
 			{
-				using (new AllowMultipleQuery())
-				using (var db = new DataConnection(context))
+				using(new AllowMultipleQuery())
+				using(var db = new DataConnection(context))
 				{
 					// test cloned data connection without LoadWith, as it doesn't use cloning in v3
 					db.Select(() => "test1");
-					using (var cdb = ((IDataContext)db).Clone(true))
+					using(var cdb = ((IDataContext)db).Clone(true))
 					{
 						cdb.Select(() => "test2");
 
@@ -1231,7 +1221,7 @@ namespace Tests.Data
 				scope?.Dispose();
 			}
 		}
-#endregion
+		#endregion
 
 	}
 }

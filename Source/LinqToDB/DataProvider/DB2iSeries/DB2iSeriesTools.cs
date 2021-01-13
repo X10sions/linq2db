@@ -1,8 +1,14 @@
 ﻿#nullable enable
 using System;
+using System.Data;
+using System.Data.Common;
 using JetBrains.Annotations;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
+#if NETFRAMEWORK
+using System.Data.Odbc;
+using System.Data.OleDb;
+#endif
 
 namespace LinqToDB.DataProvider.DB2iSeries
 {
@@ -18,6 +24,34 @@ namespace LinqToDB.DataProvider.DB2iSeries
 			return provider;
 		}, true);
 
+		private static readonly Lazy<IDataProvider> _db2iSeriesDataProviderV6R1 = new Lazy<IDataProvider>(() =>
+		{
+			var provider = new DB2iSeriesDataProvider(ProviderName.DB2iSeries, DB2iSeriesVersion.V6_1);
+			DataConnection.AddDataProvider(provider);
+			return provider;
+		}, true);
+
+		private static readonly Lazy<IDataProvider> _db2iSeriesDataProviderV7R1 = new Lazy<IDataProvider>(() =>
+		{
+			var provider = new DB2iSeriesDataProvider(ProviderName.DB2iSeries, DB2iSeriesVersion.V7_1);
+			DataConnection.AddDataProvider(provider);
+			return provider;
+		}, true);
+
+		private static readonly Lazy<IDataProvider> _db2iSeriesDataProviderV7R2 = new Lazy<IDataProvider>(() =>
+		{
+			var provider = new DB2iSeriesDataProvider(ProviderName.DB2iSeries, DB2iSeriesVersion.V7_2);
+			DataConnection.AddDataProvider(provider);
+			return provider;
+		}, true);
+
+		private static readonly Lazy<IDataProvider> _db2iSeriesDataProviderV7R3 = new Lazy<IDataProvider>(() =>
+		{
+			var provider = new DB2iSeriesDataProvider(ProviderName.DB2iSeries, DB2iSeriesVersion.V7_3);
+			DataConnection.AddDataProvider(provider);
+			return provider;
+		}, true);
+
 		private static readonly Lazy<IDataProvider> _db2iSeriesDataProviderV7R4 = new Lazy<IDataProvider>(() =>
 		{
 			var provider = new DB2iSeriesDataProvider(ProviderName.DB2iSeries, DB2iSeriesVersion.V7_4);
@@ -27,27 +61,53 @@ namespace LinqToDB.DataProvider.DB2iSeries
 
 		public static bool AutoDetectProvider { get; set; } = true;
 
+		public static DB2iSeriesConnectionType GetDB2iSeriesConnectionType(this DbConnectionStringBuilder connectionStringBuilder)
+		{
+			if(connectionStringBuilder.ContainsKey("DRIVER")) return DB2iSeriesConnectionType.Odbc;
+			else if(connectionStringBuilder.ContainsKey("PROVIDER")) return DB2iSeriesConnectionType.OleDb;
+			else if(connectionStringBuilder.ContainsKey("SERVER")) return DB2iSeriesConnectionType.DB2;
+#if NETFRAMEWORK
+			else if(connectionStringBuilder.ContainsKey("DATA SOURCE"))
+				return DB2iSeriesConnectionType.DB2i;
+#endif
+			else
+				throw new NotImplementedException();
+		}
+
 		public static IDataProvider? ProviderDetector(IConnectionStringSettings css, string connectionString)
 		{
-			//var csb = new DbConnectionStringBuilder()
-			//{
-			//	ConnectionString = connectionString.ToUpper()
-			//};
-			//var version = csb.GetVersion();
-
 			switch(css.ProviderName)
 			{
 				case "":
 				case null:
-				case ProviderName.DB2iSeries: return _db2iSeriesDataProviderV5R4.Value;
-					//case DB2iSeriesProviderName.DB2i_DB2Connect:
-					//	return _db2iSeriesDotconnectDataProvider.Value;
-
-					//case DB2iSeriesProviderName.DB2i_Odbc: return _db2iSeriesOdbcDataProvider.Value;
-					//case DB2iSeriesProviderName.DB2i_OleDb: return _db2iSeriesOleDbDataProvider.Value;
+				case ProviderName.DB2iSeries:
+					var csb = new DbConnectionStringBuilder()
+					{
+						ConnectionString = connectionString.ToUpper()
+					};
+					var connType = csb.GetDB2iSeriesConnectionType();
+					var version = connType switch
+					{
+					//DB2iSeriesConnectionType.DB2 => new DB2Connection(connectionString).GetVersion().GetDB2iSeriesVersion(),
+					//DB2iSeriesConnectionType.DB2i => Extensions.ServerVersionAsVersion(GetiDB2ConnectionServerVersion(connectionString)).GetDB2iSeriesVersion(),
+#if NETFRAMEWORK
+						DB2iSeriesConnectionType.Odbc => new OdbcConnection(connectionString).GetVersion().GetDB2iSeriesVersion(),
+						DB2iSeriesConnectionType.OleDb=> new OleDbConnection(connectionString).GetVersion().GetDB2iSeriesVersion(),
+#endif
+						_=>  DB2iSeriesVersion.V7_4
+					};
+					return GetDataProvider(version);
 			}
-			//var providerType = csb.GetProviderType();
 			return null;
+		}
+
+		public static string GetiDB2ConnectionServerVersion(string connectionString)
+		{
+			using(var conn = new DB2iSeriesProviderAdapter.iDB2Connection(connectionString))
+			{
+				conn.Open();
+				return conn.ServerVersion;
+			}
 		}
 
 		//internal static IDataProvider? ProviderDetector(IConnectionStringSettings css, string connectionString)
@@ -93,6 +153,29 @@ namespace LinqToDB.DataProvider.DB2iSeries
 		//	}
 		//	return null;
 		//}
+
+		public static IDataProvider GetDataProvider(DB2iSeriesVersion version) => version switch
+		{
+			DB2iSeriesVersion.V5_4 => _db2iSeriesDataProviderV5R4.Value,
+			DB2iSeriesVersion.V6_1 => _db2iSeriesDataProviderV6R1.Value,
+			DB2iSeriesVersion.V7_1 => _db2iSeriesDataProviderV7R1.Value,
+			DB2iSeriesVersion.V7_2 => _db2iSeriesDataProviderV7R2.Value,
+			DB2iSeriesVersion.V7_3 => _db2iSeriesDataProviderV7R3.Value,
+			DB2iSeriesVersion.V7_4 => _db2iSeriesDataProviderV7R4.Value
+		};
+
+		#region CreateDataConnection
+
+		public static DataConnection CreateDataConnection(string connectionString, DB2iSeriesVersion version)
+			=> new DataConnection(GetDataProvider(version), connectionString);
+
+		public static DataConnection CreateDataConnection(IDbConnection connection, DB2iSeriesVersion version)
+			=> new DataConnection(GetDataProvider(version), connection);
+
+		public static DataConnection CreateDataConnection(IDbTransaction transaction, DB2iSeriesVersion version)
+			=> new DataConnection(GetDataProvider(version), transaction);
+
+		#endregion
 
 	}
 }

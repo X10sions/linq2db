@@ -1,37 +1,48 @@
 ﻿#nullable enable
 using System;
-using JetBrains.Annotations;
+using System.Data;
 using LinqToDB.Mapping;
 using LinqToDB.SchemaProvider;
 using LinqToDB.SqlProvider;
 
 namespace LinqToDB.DataProvider.DB2iSeries
 {
-	public class DB2iSeriesProviderOptions
-	{
-	}
 
-		public enum DB2iSeriesVersion
-	{
-		V5_4 = 54,
-		V6_1 = 61,
-		V7_1 = 71,
-		V7_2 = 72,
-		V7_3 = 73,
-		V7_4 =74
-	}
+	//public class DB2iSeriesDataProviderBase<TConnection, TDataReader>
+	//	: DataProviderBase where TConnection : IDbConnection, new() where TDataReader : IDataReader
+	//{
 
-	public class DB2iSeriesMappingSchema : MappingSchema
-	{
-		public static DB2iSeriesMappingSchema Instance => new DB2iSeriesMappingSchema();
+	//	public DB2iSeriesDataProviderBase()
+	//		: base(ProviderName.DB2iSeries, dB2ISeriesConfiguration.MappingSchema)
+	//	{
+	//	}
 
-		public DB2iSeriesMappingSchema() : this(ProviderName.DB2iSeries) { }
+	//	public override string? ConnectionNamespace => typeof(TConnection).Namespace
 
-		DB2iSeriesMappingSchema(string configuration, params MappingSchema[] schemas) : base(configuration, schemas)
-		{
-		}
+	//	public override Type DataReaderType => typeof(TDataReader);
 
-	}
+	//	public override TableOptions SupportedTableOptions => throw new NotImplementedException();
+
+	//	public override ISqlBuilder CreateSqlBuilder(MappingSchema mappingSchema)
+	//	{
+	//		throw new NotImplementedException();
+	//	}
+
+	//	public override ISchemaProvider GetSchemaProvider()
+	//	{
+	//		throw new NotImplementedException();
+	//	}
+
+	//	public override ISqlOptimizer GetSqlOptimizer()
+	//	{
+	//		throw new NotImplementedException();
+	//	}
+
+	//	protected override IDbConnection CreateConnectionInternal(string connectionString) => new TConnection
+	//	{
+	//		val.ConnectionString = connectionString
+	//	};
+	//}
 
 	public class DB2iSeriesDataProvider : DynamicDataProviderBase<DB2iSeriesProviderAdapter>
 	{
