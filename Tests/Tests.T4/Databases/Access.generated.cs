@@ -15,6 +15,7 @@ using System.Linq;
 
 using LinqToDB;
 using LinqToDB.Common;
+using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
 
@@ -52,6 +53,13 @@ namespace AccessDataContext
 
 		public TestDataDB(string configuration)
 			: base(configuration)
+		{
+			InitDataContext();
+			InitMappingSchema();
+		}
+
+		public TestDataDB(LinqToDbConnectionOptions options)
+			: base(options)
 		{
 			InitDataContext();
 			InitMappingSchema();
@@ -435,55 +443,55 @@ namespace AccessDataContext
 
 	public static partial class TableExtensions
 	{
-		public static DataTypeTest Find(this ITable<DataTypeTest> table, int DataTypeID)
+		public static DataTypeTest? Find(this ITable<DataTypeTest> table, int DataTypeID)
 		{
 			return table.FirstOrDefault(t =>
 				t.DataTypeID == DataTypeID);
 		}
 
-		public static Doctor Find(this ITable<Doctor> table, int PersonID)
+		public static Doctor? Find(this ITable<Doctor> table, int PersonID)
 		{
 			return table.FirstOrDefault(t =>
 				t.PersonID == PersonID);
 		}
 
-		public static InheritanceChild Find(this ITable<InheritanceChild> table, int InheritanceChildId)
+		public static InheritanceChild? Find(this ITable<InheritanceChild> table, int InheritanceChildId)
 		{
 			return table.FirstOrDefault(t =>
 				t.InheritanceChildId == InheritanceChildId);
 		}
 
-		public static InheritanceParent Find(this ITable<InheritanceParent> table, int InheritanceParentId)
+		public static InheritanceParent? Find(this ITable<InheritanceParent> table, int InheritanceParentId)
 		{
 			return table.FirstOrDefault(t =>
 				t.InheritanceParentId == InheritanceParentId);
 		}
 
-		public static Patient Find(this ITable<Patient> table, int PersonID)
+		public static Patient? Find(this ITable<Patient> table, int PersonID)
 		{
 			return table.FirstOrDefault(t =>
 				t.PersonID == PersonID);
 		}
 
-		public static Person Find(this ITable<Person> table, int PersonID)
+		public static Person? Find(this ITable<Person> table, int PersonID)
 		{
 			return table.FirstOrDefault(t =>
 				t.PersonID == PersonID);
 		}
 
-		public static TestIdentity Find(this ITable<TestIdentity> table, int ID)
+		public static TestIdentity? Find(this ITable<TestIdentity> table, int ID)
 		{
 			return table.FirstOrDefault(t =>
 				t.ID == ID);
 		}
 
-		public static TestMerge1 Find(this ITable<TestMerge1> table, int Id)
+		public static TestMerge1? Find(this ITable<TestMerge1> table, int Id)
 		{
 			return table.FirstOrDefault(t =>
 				t.Id == Id);
 		}
 
-		public static TestMerge2 Find(this ITable<TestMerge2> table, int Id)
+		public static TestMerge2? Find(this ITable<TestMerge2> table, int Id)
 		{
 			return table.FirstOrDefault(t =>
 				t.Id == Id);

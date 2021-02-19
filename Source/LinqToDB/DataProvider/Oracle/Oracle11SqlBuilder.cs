@@ -5,10 +5,10 @@ using System.Linq;
 namespace LinqToDB.DataProvider.Oracle
 {
 	using Common;
-	using Mapping;
 	using SqlQuery;
 	using SqlProvider;
 	using System.Text;
+	using Mapping;
 
 	partial class Oracle11SqlBuilder : BasicSqlBuilder
 	{
@@ -53,7 +53,7 @@ namespace LinqToDB.DataProvider.Oracle
 				throw new SqlException("Identity field must be defined for '{0}'.", insertClause.Into.Name);
 
 			AppendIndent().AppendLine("RETURNING ");
-			AppendIndent().Append("\t");
+			AppendIndent().Append('\t');
 			BuildExpression(identityField, false, true);
 			StringBuilder.AppendLine(" INTO :IDENTITY_PARAMETER");
 		}
@@ -65,45 +65,24 @@ namespace LinqToDB.DataProvider.Oracle
 				var attr = GetSequenceNameAttribute(table, false);
 
 				if (attr != null)
-					return new SqlExpression(attr.SequenceName + ".nextval", Precedence.Primary);
+					return new SqlExpression(
+							(attr.Schema != null ? ConvertInline(attr.Schema, ConvertType.NameToSchema) + "." : null) +
+							ConvertInline(attr.SequenceName, ConvertType.SequenceName) +
+							".nextval",
+						Precedence.Primary);
 			}
 
 			return base.GetIdentityExpression(table);
 		}
 
-		static void ConvertEmptyStringToNullIfNeeded(ISqlExpression expr)
-		{
-			var sqlParameter = expr as SqlParameter;
-			var sqlValue     = expr as SqlValue;
-
-			if (sqlParameter?.Value is string && sqlParameter.Value.ToString() == "")
-				sqlParameter.Value = null;
-
-			if (sqlValue?.Value is string && sqlValue.Value.ToString() == "")
-				sqlValue.Value = null;
-		}
-
-		protected override void BuildPredicate(ISqlPredicate predicate)
-		{
-			if (predicate.ElementType == QueryElementType.ExprExprPredicate)
-			{
-				var expr = (SqlPredicate.ExprExpr)predicate;
-				if (expr.Operator == SqlPredicate.Operator.Equal ||
-					expr.Operator == SqlPredicate.Operator.NotEqual)
-				{
-					ConvertEmptyStringToNullIfNeeded(expr.Expr1);
-					ConvertEmptyStringToNullIfNeeded(expr.Expr2);
-				}
-			}
-			base.BuildPredicate(predicate);
-		}
-
 		protected override bool BuildWhere(SelectQuery selectQuery)
 		{
+			SqlOptimizer.ConvertSkipTake(MappingSchema, selectQuery, OptimizationContext, out var takeExpr, out var skipEpr);
+
 			return
 				base.BuildWhere(selectQuery) ||
-				!NeedSkip(selectQuery) &&
-				 NeedTake(selectQuery) &&
+				!NeedSkip(takeExpr, skipEpr) &&
+				 NeedTake(takeExpr) &&
 				selectQuery.OrderBy.IsEmpty && selectQuery.Having.IsEmpty;
 		}
 
@@ -120,12 +99,6 @@ namespace LinqToDB.DataProvider.Oracle
 				case SetOperation.ExceptAll : sb.Append("MINUS ALL"); return;
 			}
 			base.BuildSetOperation(operation, sb);
-		}
-
-		protected override void BuildFunction(SqlFunction func)
-		{
-			func = ConvertFunctionParameters(func);
-			base.BuildFunction(func);
 		}
 
 		protected override void BuildDataTypeFromDataType(SqlDataType type, bool forCreateTable)
@@ -173,7 +146,7 @@ namespace LinqToDB.DataProvider.Oracle
 					if (type.Type.Length == null || type.Type.Length == 0)
 						StringBuilder.Append("BLOB");
 					else
-						StringBuilder.Append("Raw(").Append(type.Type.Length).Append(")");
+						StringBuilder.Append("Raw(").Append(type.Type.Length).Append(')');
 					break;
 				default: base.BuildDataTypeFromDataType(type, forCreateTable);                    break;
 			}
@@ -216,27 +189,6 @@ namespace LinqToDB.DataProvider.Oracle
 			return ReservedWords.IsReserved(word, ProviderName.Oracle);
 		}
 
-		protected override void BuildColumnExpression(SelectQuery? selectQuery, ISqlExpression expr, string? alias, ref bool addAlias)
-		{
-			var wrap = false;
-
-			if (expr.SystemType == typeof(bool))
-			{
-				if (expr is SqlSearchCondition)
-					wrap = true;
-				else
-					wrap =
-						expr is SqlExpression ex      &&
-						ex.Expr              == "{0}" &&
-						ex.Parameters.Length == 1     &&
-						ex.Parameters[0] is SqlSearchCondition;
-			}
-
-			if (wrap) StringBuilder.Append("CASE WHEN ");
-			base.BuildColumnExpression(selectQuery, expr, alias, ref addAlias);
-			if (wrap) StringBuilder.Append(" THEN 1 ELSE 0 END");
-		}
-
 		/// <summary>
 		/// Check if identifier is valid without quotation. Expects non-zero length string as input.
 		/// </summary>
@@ -270,6 +222,10 @@ namespace LinqToDB.DataProvider.Oracle
 				case ConvertType.NameToQueryFieldAlias:
 				case ConvertType.NameToQueryField:
 				case ConvertType.NameToQueryTable:
+				case ConvertType.NameToServer:
+				case ConvertType.SequenceName:
+				case ConvertType.NameToSchema:
+				case ConvertType.TriggerName:
 					if (!IsValidIdentifier(value))
 						return sb.Append('"').Append(value).Append('"');
 
@@ -286,7 +242,7 @@ namespace LinqToDB.DataProvider.Oracle
 
 		public override string GetReserveSequenceValuesSql(int count, string sequenceName)
 		{
-			return "SELECT " + sequenceName + ".nextval ID from DUAL connect by level <= " + count;
+			return $"SELECT {ConvertInline(sequenceName, ConvertType.SequenceName)}.nextval ID from DUAL connect by level <= {count}";
 		}
 
 		protected override void BuildEmptyInsert(SqlInsertClause insertClause)
@@ -309,7 +265,7 @@ namespace LinqToDB.DataProvider.Oracle
 					return truncateTable.ResetIdentity && truncateTable.Table!.IdentityFields.Count > 0 ? 2 : 1;
 
 				case SqlCreateTableStatement createTable:
-					_identityField = createTable.Table!.IdentityFields.FirstOrDefault();
+					_identityField = createTable.Table!.IdentityFields.Count > 0 ? createTable.Table!.IdentityFields[0] : null;
 					if (_identityField != null)
 						return 3;
 					break;
@@ -320,7 +276,7 @@ namespace LinqToDB.DataProvider.Oracle
 
 		protected override void BuildDropTableStatement(SqlDropTableStatement dropTable)
 		{
-			var identityField = dropTable.Table!.IdentityFields.FirstOrDefault();
+			var identityField = dropTable.Table!.IdentityFields.Count > 0 ? dropTable.Table!.IdentityFields[0] : null;
 
 			if (identityField == null && dropTable.Table.TableOptions.HasDropIfExists() == false && dropTable.Table.TableOptions.HasIsTemporary() == false)
 			{
@@ -328,10 +284,6 @@ namespace LinqToDB.DataProvider.Oracle
 			}
 			else
 			{
-				var schemaPrefix = string.IsNullOrWhiteSpace(dropTable.Table.Schema)
-					? string.Empty
-					: dropTable.Table.Schema + ".";
-
 				StringBuilder
 					.AppendLine(@"BEGIN");
 
@@ -358,15 +310,19 @@ namespace LinqToDB.DataProvider.Oracle
 				else if (!dropTable.Table.TableOptions.HasDropIfExists() && !dropTable.Table.TableOptions.HasIsTemporary())
 				{
 					StringBuilder
-						.Append("\tEXECUTE IMMEDIATE 'DROP TRIGGER ")
-						.Append(schemaPrefix)
-						.Append("TIDENTITY_")
-						.Append(dropTable.Table.PhysicalName)
+						.Append("\tEXECUTE IMMEDIATE 'DROP TRIGGER ");
+
+					AppendSchemaPrefix(StringBuilder, dropTable.Table!.Schema);
+					Convert(StringBuilder, MakeIdentityTriggerName(dropTable.Table.PhysicalName!), ConvertType.TriggerName);
+
+					StringBuilder
 						.AppendLine("';")
-						.Append("\tEXECUTE IMMEDIATE 'DROP SEQUENCE ")
-						.Append(schemaPrefix)
-						.Append("SIDENTITY_")
-						.Append(dropTable.Table.PhysicalName)
+						.Append("\tEXECUTE IMMEDIATE 'DROP SEQUENCE ");
+
+					AppendSchemaPrefix(StringBuilder, dropTable.Table!.Schema);
+					Convert(StringBuilder, MakeIdentitySequenceName(dropTable.Table.PhysicalName!), ConvertType.SequenceName);
+
+					StringBuilder
 						.AppendLine("';")
 						.Append("\tEXECUTE IMMEDIATE 'DROP TABLE ");
 					BuildPhysicalTable(dropTable.Table, null);
@@ -378,10 +334,12 @@ namespace LinqToDB.DataProvider.Oracle
 				{
 					StringBuilder
 						.AppendLine("\tBEGIN")
-						.Append("\t\tEXECUTE IMMEDIATE 'DROP TRIGGER ")
-						.Append(schemaPrefix)
-						.Append("TIDENTITY_")
-						.Append(dropTable.Table.PhysicalName)
+						.Append("\t\tEXECUTE IMMEDIATE 'DROP TRIGGER ");
+
+					AppendSchemaPrefix(StringBuilder, dropTable.Table!.Schema);
+					Convert(StringBuilder, MakeIdentityTriggerName(dropTable.Table.PhysicalName!), ConvertType.TriggerName);
+
+					StringBuilder
 						.AppendLine("';")
 						.AppendLine("\tEXCEPTION")
 						.AppendLine("\t\tWHEN OTHERS THEN")
@@ -391,10 +349,12 @@ namespace LinqToDB.DataProvider.Oracle
 						.AppendLine("\tEND;")
 
 						.AppendLine("\tBEGIN")
-						.Append("\t\tEXECUTE IMMEDIATE 'DROP SEQUENCE ")
-						.Append(schemaPrefix)
-						.Append("SIDENTITY_")
-						.Append(dropTable.Table.PhysicalName)
+						.Append("\t\tEXECUTE IMMEDIATE 'DROP SEQUENCE ");
+					
+					AppendSchemaPrefix(StringBuilder, dropTable.Table!.Schema);
+					Convert(StringBuilder, MakeIdentitySequenceName(dropTable.Table.PhysicalName!), ConvertType.SequenceName);
+
+					StringBuilder
 						.AppendLine("';")
 						.AppendLine("\tEXCEPTION")
 						.AppendLine("\t\tWHEN OTHERS THEN")
@@ -423,65 +383,77 @@ namespace LinqToDB.DataProvider.Oracle
 			}
 		}
 
+		protected static string MakeIdentityTriggerName(string tableName)
+		{
+			return "TIDENTITY_" + tableName;
+		}
+
+		protected static string MakeIdentitySequenceName(string tableName)
+		{
+			return "SIDENTITY_" + tableName;
+		}
+
 		protected override void BuildCommand(SqlStatement statement, int commandNumber)
 		{
-			static string GetSchemaPrefix(SqlTable table)
-			{
-				return string.IsNullOrWhiteSpace(table.Schema)
-					? string.Empty
-					: table.Schema + ".";
-			}
-
 			switch (Statement)
 			{
 				case SqlTruncateTableStatement truncate:
+					var sequenceName = ConvertInline(MakeIdentitySequenceName(truncate.Table!.PhysicalName!), ConvertType.SequenceName);
 					StringBuilder
 						.AppendFormat(@"DECLARE
 	l_value number;
 BEGIN
 	-- Select the next value of the sequence
-	EXECUTE IMMEDIATE 'SELECT SIDENTITY_{0}.NEXTVAL FROM dual' INTO l_value;
+	EXECUTE IMMEDIATE 'SELECT {0}.NEXTVAL FROM dual' INTO l_value;
 
 	-- Set a negative increment for the sequence, with value = the current value of the sequence
-	EXECUTE IMMEDIATE 'ALTER SEQUENCE SIDENTITY_{0} INCREMENT BY -' || l_value || ' MINVALUE 0';
+	EXECUTE IMMEDIATE 'ALTER SEQUENCE {0} INCREMENT BY -' || l_value || ' MINVALUE 0';
 
 	-- Select once from the sequence, to take its current value back to 0
-	EXECUTE IMMEDIATE 'select SIDENTITY_{0}.NEXTVAL FROM dual' INTO l_value;
+	EXECUTE IMMEDIATE 'select {0}.NEXTVAL FROM dual' INTO l_value;
 
 	-- Set the increment back to 1
-	EXECUTE IMMEDIATE 'ALTER SEQUENCE SIDENTITY_{0} INCREMENT BY 1 MINVALUE 0';
+	EXECUTE IMMEDIATE 'ALTER SEQUENCE {0} INCREMENT BY 1 MINVALUE 0';
 END;",
-							truncate.Table!.PhysicalName)
+							sequenceName)
 						.AppendLine()
 						;
 
 					break;
 				case SqlCreateTableStatement createTable:
 				{
-					var schemaPrefix = GetSchemaPrefix(createTable.Table!);
-
 					if (commandNumber == 1)
 					{
 						StringBuilder
-							.Append("CREATE SEQUENCE ")
-							.Append(schemaPrefix)
-							.Append("SIDENTITY_")
-							.Append(createTable.Table!.PhysicalName)
+							.Append("CREATE SEQUENCE ");
+						AppendSchemaPrefix(StringBuilder, createTable.Table!.Schema);
+						Convert(StringBuilder, MakeIdentitySequenceName(createTable.Table!.PhysicalName!), ConvertType.SequenceName);
+						StringBuilder
 							.AppendLine();
 					}
 					else
 					{
 						StringBuilder
-							.AppendFormat("CREATE OR REPLACE TRIGGER {0}TIDENTITY_{1}", schemaPrefix, createTable.Table!.PhysicalName)
+							.Append("CREATE OR REPLACE TRIGGER ");
+						AppendSchemaPrefix(StringBuilder, createTable.Table!.Schema);
+						Convert(StringBuilder, MakeIdentityTriggerName(createTable.Table!.PhysicalName!), ConvertType.TriggerName);
+						StringBuilder
 							.AppendLine()
 							.AppendFormat("BEFORE INSERT ON ");
 
 						BuildPhysicalTable(createTable.Table, null);
 
 						StringBuilder
-							.AppendLine  (" FOR EACH ROW")
-							.AppendLine  ("BEGIN")
-							.AppendFormat("\tSELECT {2}SIDENTITY_{1}.NEXTVAL INTO :NEW.{0} FROM dual;", _identityField!.PhysicalName, createTable.Table.PhysicalName, schemaPrefix)
+							.AppendLine(" FOR EACH ROW")
+							.AppendLine("BEGIN")
+							.Append("\tSELECT ");
+						AppendSchemaPrefix(StringBuilder, createTable.Table!.Schema);
+						Convert(StringBuilder, MakeIdentitySequenceName(createTable.Table!.PhysicalName!), ConvertType.SequenceName);
+						StringBuilder
+							.Append(".NEXTVAL INTO :NEW.");
+						Convert(StringBuilder, _identityField!.PhysicalName, ConvertType.NameToQueryField);
+						StringBuilder
+							.Append(" FROM dual;")
 							.AppendLine  ()
 							.AppendLine  ("END;");
 					}
@@ -502,14 +474,23 @@ END;",
 			if (schema != null && schema.Length == 0) schema = null;
 
 			if (schema != null)
-				sb.Append(schema).Append(".");
+				sb.Append(schema).Append('.');
 
 			sb.Append(table);
 
 			if (server != null)
-				sb.Append("@").Append(server);
+				sb.Append('@').Append(server);
 
 			return sb;
+		}
+
+		private void AppendSchemaPrefix(StringBuilder sb, string? schema)
+		{
+			if (schema != null)
+			{
+				Convert(sb, schema, ConvertType.NameToSchema);
+				sb.Append('.');
+			}
 		}
 
 		protected override string? GetProviderTypeName(IDbDataParameter parameter)

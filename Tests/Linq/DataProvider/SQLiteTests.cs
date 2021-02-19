@@ -17,7 +17,6 @@ using NUnit.Framework;
 namespace Tests.DataProvider
 {
 	using System.Diagnostics.CodeAnalysis;
-	using System.Globalization;
 	using System.Threading.Tasks;
 	using Model;
 
@@ -366,9 +365,9 @@ namespace Tests.DataProvider
 				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.VarBinary("p", arr1)), Is.EqualTo(arr1));
 				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.Create   ("p", arr1)), Is.EqualTo(arr1));
 				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.VarBinary("p", null)), Is.EqualTo(null));
-				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.Binary   ("p", new byte[0])), Is.EqualTo(new byte[0]));
-				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.VarBinary("p", new byte[0])), Is.EqualTo(new byte[0]));
-				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.Image    ("p", new byte[0])), Is.EqualTo(new byte[0]));
+				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.Binary   ("p", Array<byte>.Empty)), Is.EqualTo(Array<byte>.Empty));
+				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.VarBinary("p", Array<byte>.Empty)), Is.EqualTo(Array<byte>.Empty));
+				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.Image    ("p", Array<byte>.Empty)), Is.EqualTo(Array<byte>.Empty));
 				Assert.That(conn.Execute<byte[]>("SELECT @p", new DataParameter { Name = "p", Value = arr1 }), Is.EqualTo(arr1));
 				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.Create   ("p", new Binary(arr1))), Is.EqualTo(arr1));
 				Assert.That(conn.Execute<byte[]>("SELECT @p", new DataParameter("p", new Binary(arr1))), Is.EqualTo(arr1));
@@ -576,7 +575,7 @@ namespace Tests.DataProvider
 				var sp = db.DataProvider.GetSchemaProvider();
 				var s  = sp.GetSchema(db);
 
-				var table = s.Tables.FirstOrDefault(_ => _.TableName!.Equals("ForeignKeyTable", StringComparison.OrdinalIgnoreCase));
+				var table = s.Tables.FirstOrDefault(_ => _.TableName!.Equals("ForeignKeyTable", StringComparison.OrdinalIgnoreCase))!;
 				Assert.IsNotNull(table);
 
 				Assert.AreEqual(1,                   table.ForeignKeys                   .Count);
@@ -605,7 +604,7 @@ namespace Tests.DataProvider
 #if NET472
 					expectedVersion = "3.13.0";
 #else
-					expectedVersion = "3.28.0";
+					expectedVersion = "3.33.0";
 #endif
 					break;
 				default:
@@ -616,7 +615,7 @@ namespace Tests.DataProvider
 			using (var cmd = db.CreateCommand())
 			{
 				cmd.CommandText = "select sqlite_version();";
-				var version     = (string)cmd.ExecuteScalar();
+				var version     = (string)cmd.ExecuteScalar()!;
 
 				Assert.AreEqual(expectedVersion, version);
 			}

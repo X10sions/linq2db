@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using LinqToDB;
+using LinqToDB.Configuration;
 using LinqToDB.Mapping;
 
 namespace SqlCeDataContext
@@ -44,6 +45,13 @@ namespace SqlCeDataContext
 
 		public TestDataDB(string configuration)
 			: base(configuration)
+		{
+			InitDataContext();
+			InitMappingSchema();
+		}
+
+		public TestDataDB(LinqToDbConnectionOptions options)
+			: base(options)
 		{
 			InitDataContext();
 			InitMappingSchema();
@@ -291,67 +299,67 @@ namespace SqlCeDataContext
 
 	public static partial class TableExtensions
 	{
-		public static AllType Find(this ITable<AllType> table, int ID)
+		public static AllType? Find(this ITable<AllType> table, int ID)
 		{
 			return table.FirstOrDefault(t =>
 				t.ID == ID);
 		}
 
-		public static Doctor Find(this ITable<Doctor> table, int PersonID)
+		public static Doctor? Find(this ITable<Doctor> table, int PersonID)
 		{
 			return table.FirstOrDefault(t =>
 				t.PersonID == PersonID);
 		}
 
-		public static InheritanceChild Find(this ITable<InheritanceChild> table, int InheritanceChildId)
+		public static InheritanceChild? Find(this ITable<InheritanceChild> table, int InheritanceChildId)
 		{
 			return table.FirstOrDefault(t =>
 				t.InheritanceChildId == InheritanceChildId);
 		}
 
-		public static InheritanceParent Find(this ITable<InheritanceParent> table, int InheritanceParentId)
+		public static InheritanceParent? Find(this ITable<InheritanceParent> table, int InheritanceParentId)
 		{
 			return table.FirstOrDefault(t =>
 				t.InheritanceParentId == InheritanceParentId);
 		}
 
-		public static Issue695 Find(this ITable<Issue695> table, int ID)
+		public static Issue695? Find(this ITable<Issue695> table, int ID)
 		{
 			return table.FirstOrDefault(t =>
 				t.ID == ID);
 		}
 
-		public static Issue695Parent Find(this ITable<Issue695Parent> table, int ID)
+		public static Issue695Parent? Find(this ITable<Issue695Parent> table, int ID)
 		{
 			return table.FirstOrDefault(t =>
 				t.ID == ID);
 		}
 
-		public static Patient Find(this ITable<Patient> table, int PersonID)
+		public static Patient? Find(this ITable<Patient> table, int PersonID)
 		{
 			return table.FirstOrDefault(t =>
 				t.PersonID == PersonID);
 		}
 
-		public static Person Find(this ITable<Person> table, int PersonID)
+		public static Person? Find(this ITable<Person> table, int PersonID)
 		{
 			return table.FirstOrDefault(t =>
 				t.PersonID == PersonID);
 		}
 
-		public static TestIdentity Find(this ITable<TestIdentity> table, int ID)
+		public static TestIdentity? Find(this ITable<TestIdentity> table, int ID)
 		{
 			return table.FirstOrDefault(t =>
 				t.ID == ID);
 		}
 
-		public static TestMerge1 Find(this ITable<TestMerge1> table, int Id)
+		public static TestMerge1? Find(this ITable<TestMerge1> table, int Id)
 		{
 			return table.FirstOrDefault(t =>
 				t.Id == Id);
 		}
 
-		public static TestMerge2 Find(this ITable<TestMerge2> table, int Id)
+		public static TestMerge2? Find(this ITable<TestMerge2> table, int Id)
 		{
 			return table.FirstOrDefault(t =>
 				t.Id == Id);
@@ -453,7 +461,7 @@ namespace SqlCeDataContext
 		/// FK_Doctor_Person_BackReference
 		/// </summary>
 		[Association(ThisKey="PersonID", OtherKey="PersonID", CanBeNull=true, Relationship=LinqToDB.Mapping.Relationship.OneToOne, IsBackReference=true)]
-		public static Person Doctor(this Doctor obj, IDataContext db)
+		public static Person? Doctor(this Doctor obj, IDataContext db)
 		{
 			return db.GetTable<Person>().Where(c => c.PersonID == obj.PersonID).FirstOrDefault();
 		}
@@ -471,7 +479,7 @@ namespace SqlCeDataContext
 		/// FK_Patient_Person_BackReference
 		/// </summary>
 		[Association(ThisKey="PersonID", OtherKey="PersonID", CanBeNull=true, Relationship=LinqToDB.Mapping.Relationship.OneToOne, IsBackReference=true)]
-		public static Person Patient(this Patient obj, IDataContext db)
+		public static Person? Patient(this Patient obj, IDataContext db)
 		{
 			return db.GetTable<Person>().Where(c => c.PersonID == obj.PersonID).FirstOrDefault();
 		}

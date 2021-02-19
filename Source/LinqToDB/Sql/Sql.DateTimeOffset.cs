@@ -83,7 +83,7 @@ namespace LinqToDB
 					case Sql.DateParts.Second      : expStr = "{0} * Interval '1 Second'";       break;
 					case Sql.DateParts.Millisecond : expStr = "{0} * Interval '1 Millisecond'";  break;
 					default:
-						throw new ArgumentOutOfRangeException();
+						throw new InvalidOperationException($"Unexpected datepart: {part}");
 				}
 
 				builder.ResultExpression = builder.Add(
@@ -129,13 +129,14 @@ namespace LinqToDB
 
 		#region DateDiff
 		[CLSCompliant(false)]
-		[Sql.Extension(            "DateDiff",      BuilderType = typeof(DateDiffBuilder))]
-		[Sql.Extension(PN.MySql,   "TIMESTAMPDIFF", BuilderType = typeof(DateDiffBuilder))]
-		[Sql.Extension(PN.DB2,     "",              BuilderType = typeof(DateDiffBuilderDB2))]
-		[Sql.Extension(PN.DB2iSeries,"",            BuilderType = typeof(DateDiffBuilderDB2iSeries))]
-		[Sql.Extension(PN.SapHana, "",              BuilderType = typeof(DateDiffBuilderSapHana))]
-		[Sql.Extension(PN.SQLite,  "",              BuilderType = typeof(DateDiffBuilderSQLite))]
-		[Sql.Extension(PN.PostgreSQL,  "",          BuilderType = typeof(DateDiffBuilderPostgreSql))]
+		[Sql.Extension(               "DateDiff",      BuilderType = typeof(DateDiffBuilder))]
+		[Sql.Extension(PN.MySql,      "TIMESTAMPDIFF", BuilderType = typeof(DateDiffBuilder))]
+		[Sql.Extension(PN.DB2,        "",              BuilderType = typeof(DateDiffBuilderDB2))]
+		[Sql.Extension(PN.DB2iSeries, "",              BuilderType = typeof(DateDiffBuilderDB2iSeries))]
+		[Sql.Extension(PN.SapHana,    "",              BuilderType = typeof(DateDiffBuilderSapHana))]
+		[Sql.Extension(PN.SQLite,     "",              BuilderType = typeof(DateDiffBuilderSQLite))]
+		[Sql.Extension(PN.PostgreSQL, "",              BuilderType = typeof(DateDiffBuilderPostgreSql))]
+		[Sql.Extension(PN.Access,     "",              BuilderType = typeof(DateDiffBuilderAccess))]
 		public static int? DateDiff(DateParts part, DateTimeOffset? startDate, DateTimeOffset? endDate)
 		{
 			if (startDate == null || endDate == null)

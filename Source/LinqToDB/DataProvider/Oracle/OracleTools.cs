@@ -205,23 +205,25 @@ namespace LinqToDB.DataProvider.Oracle
 #endif
 		}
 
-		public static IDataProvider GetDataProvider(string? providerName = null, string? assemblyName = null)
+		public static IDataProvider GetDataProvider(string? providerName = null, string? assemblyName = null, OracleVersion? version = null)
 		{
+			version ??= DefaultVersion;
+
 #if NETFRAMEWORK
-			if (assemblyName == OracleProviderAdapter.NativeAssemblyName ) return GetVersionedDataProvider(DefaultVersion, false);
-			if (assemblyName == OracleProviderAdapter.ManagedAssemblyName) return GetVersionedDataProvider(DefaultVersion, true);
+			if (assemblyName == OracleProviderAdapter.NativeAssemblyName ) return GetVersionedDataProvider(version.Value, false);
+			if (assemblyName == OracleProviderAdapter.ManagedAssemblyName) return GetVersionedDataProvider(version.Value, true);
 
 			return providerName switch
 			{
-				ProviderName.OracleNative  => GetVersionedDataProvider(DefaultVersion, false),
-				ProviderName.OracleManaged => GetVersionedDataProvider(DefaultVersion, true),
+				ProviderName.OracleNative  => GetVersionedDataProvider(version.Value, false),
+				ProviderName.OracleManaged => GetVersionedDataProvider(version.Value, true),
 				_						   => 
 					DetectedProviderName == ProviderName.OracleNative
-					? GetVersionedDataProvider(DefaultVersion, false)
-					: GetVersionedDataProvider(DefaultVersion, true),
+					? GetVersionedDataProvider(version.Value, false)
+					: GetVersionedDataProvider(version.Value, true),
 			};
 #else
-			return GetVersionedDataProvider(DefaultVersion, true);
+			return GetVersionedDataProvider(version.Value, true);
 #endif
 		}
 
@@ -303,14 +305,14 @@ namespace LinqToDB.DataProvider.Oracle
 
 		public static AlternativeBulkCopy UseAlternativeBulkCopy = AlternativeBulkCopy.InsertAll;
 
+		[Obsolete("This field is not used by linq2db. Configure reader expressions on DataProvider directly")]
 		public static Func<IDataReader,int,decimal> DataReaderGetDecimal = (dr, i) => dr.GetDecimal(i);
 
 		/// <summary>
 		/// Gets or sets flag to tell LinqToDB to quote identifiers, if they contain lowercase letters.
-		/// Default value: <c>true</c>.
-		/// This flag added for backward compatibility and will be removed later, so it is recommended to
-		/// set it to <c>false</c> and and fix mappings to use uppercase letters for non-quoted identifiers.
+		/// Default value: <c>false</c>.
+		/// This flag is added for backward compatibility and not recommended for use with new applications.
 		/// </summary>
-		public static bool DontEscapeLowercaseIdentifiers { get; set; } = true;
+		public static bool DontEscapeLowercaseIdentifiers { get; set; }
 	}
 }

@@ -15,6 +15,7 @@ using System.Linq;
 
 using LinqToDB;
 using LinqToDB.Common;
+using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
 
@@ -22,26 +23,27 @@ namespace DB2DataContext
 {
 	public partial class TESTDATADB : LinqToDB.Data.DataConnection
 	{
-		public ITable<DB2ADMIN_ALLTYPE>           ALLTYPES            { get { return this.GetTable<DB2ADMIN_ALLTYPE>(); } }
-		public ITable<DB2ADMIN_Child>             Children            { get { return this.GetTable<DB2ADMIN_Child>(); } }
-		public ITable<DB2ADMIN_Doctor>            Doctors             { get { return this.GetTable<DB2ADMIN_Doctor>(); } }
-		public ITable<DB2ADMIN_GrandChild>        GrandChildren       { get { return this.GetTable<DB2ADMIN_GrandChild>(); } }
-		public ITable<DB2ADMIN_InheritanceChild>  InheritanceChildren { get { return this.GetTable<DB2ADMIN_InheritanceChild>(); } }
-		public ITable<DB2ADMIN_InheritanceParent> InheritanceParents  { get { return this.GetTable<DB2ADMIN_InheritanceParent>(); } }
-		public ITable<DB2ADMIN_KeepIdentityTest>  KeepIdentityTests   { get { return this.GetTable<DB2ADMIN_KeepIdentityTest>(); } }
-		public ITable<DB2ADMIN_LinqDataType>      LinqDataTypes       { get { return this.GetTable<DB2ADMIN_LinqDataType>(); } }
-		public ITable<DB2ADMIN_MASTERTABLE>       Mastertables        { get { return this.GetTable<DB2ADMIN_MASTERTABLE>(); } }
-		public ITable<DB2ADMIN_Parent>            Parents             { get { return this.GetTable<DB2ADMIN_Parent>(); } }
-		public ITable<DB2ADMIN_Patient>           Patients            { get { return this.GetTable<DB2ADMIN_Patient>(); } }
-		public ITable<DB2ADMIN_Person>            People              { get { return this.GetTable<DB2ADMIN_Person>(); } }
-		public ITable<DB2ADMIN_PERSONVIEW>        Personviews         { get { return this.GetTable<DB2ADMIN_PERSONVIEW>(); } }
-		public ITable<DB2ADMIN_SLAVETABLE>        Slavetables         { get { return this.GetTable<DB2ADMIN_SLAVETABLE>(); } }
-		public ITable<DB2ADMIN_Test>              Tests               { get { return this.GetTable<DB2ADMIN_Test>(); } }
-		public ITable<DB2ADMIN_TestIdentity>      TestIdentities      { get { return this.GetTable<DB2ADMIN_TestIdentity>(); } }
-		public ITable<DB2ADMIN_Testmerge1>        Testmerge1          { get { return this.GetTable<DB2ADMIN_Testmerge1>(); } }
-		public ITable<DB2ADMIN_TestMerge1>        TestMerge1          { get { return this.GetTable<DB2ADMIN_TestMerge1>(); } }
-		public ITable<DB2ADMIN_Testmerge2>        Testmerge2          { get { return this.GetTable<DB2ADMIN_Testmerge2>(); } }
-		public ITable<DB2ADMIN_TestMerge2>        TestMerge2          { get { return this.GetTable<DB2ADMIN_TestMerge2>(); } }
+		public ITable<DB2ADMIN_ALLTYPE>                ALLTYPES                { get { return this.GetTable<DB2ADMIN_ALLTYPE>(); } }
+		public ITable<DB2ADMIN_Child>                  Children                { get { return this.GetTable<DB2ADMIN_Child>(); } }
+		public ITable<DB2ADMIN_CreateIfNotExistsTable> CreateIfNotExistsTables { get { return this.GetTable<DB2ADMIN_CreateIfNotExistsTable>(); } }
+		public ITable<DB2ADMIN_Doctor>                 Doctors                 { get { return this.GetTable<DB2ADMIN_Doctor>(); } }
+		public ITable<DB2ADMIN_GrandChild>             GrandChildren           { get { return this.GetTable<DB2ADMIN_GrandChild>(); } }
+		public ITable<DB2ADMIN_InheritanceChild>       InheritanceChildren     { get { return this.GetTable<DB2ADMIN_InheritanceChild>(); } }
+		public ITable<DB2ADMIN_InheritanceParent>      InheritanceParents      { get { return this.GetTable<DB2ADMIN_InheritanceParent>(); } }
+		public ITable<DB2ADMIN_KeepIdentityTest>       KeepIdentityTests       { get { return this.GetTable<DB2ADMIN_KeepIdentityTest>(); } }
+		public ITable<DB2ADMIN_LinqDataType>           LinqDataTypes           { get { return this.GetTable<DB2ADMIN_LinqDataType>(); } }
+		public ITable<DB2ADMIN_MASTERTABLE>            Mastertables            { get { return this.GetTable<DB2ADMIN_MASTERTABLE>(); } }
+		public ITable<DB2ADMIN_Parent>                 Parents                 { get { return this.GetTable<DB2ADMIN_Parent>(); } }
+		public ITable<DB2ADMIN_Patient>                Patients                { get { return this.GetTable<DB2ADMIN_Patient>(); } }
+		public ITable<DB2ADMIN_Person>                 People                  { get { return this.GetTable<DB2ADMIN_Person>(); } }
+		public ITable<DB2ADMIN_PERSONVIEW>             Personviews             { get { return this.GetTable<DB2ADMIN_PERSONVIEW>(); } }
+		public ITable<DB2ADMIN_SLAVETABLE>             Slavetables             { get { return this.GetTable<DB2ADMIN_SLAVETABLE>(); } }
+		public ITable<DB2ADMIN_Test>                   Tests                   { get { return this.GetTable<DB2ADMIN_Test>(); } }
+		public ITable<DB2ADMIN_TestIdentity>           TestIdentities          { get { return this.GetTable<DB2ADMIN_TestIdentity>(); } }
+		public ITable<DB2ADMIN_Testmerge1>             Testmerge1              { get { return this.GetTable<DB2ADMIN_Testmerge1>(); } }
+		public ITable<DB2ADMIN_TestMerge1>             TestMerge1              { get { return this.GetTable<DB2ADMIN_TestMerge1>(); } }
+		public ITable<DB2ADMIN_Testmerge2>             Testmerge2              { get { return this.GetTable<DB2ADMIN_Testmerge2>(); } }
+		public ITable<DB2ADMIN_TestMerge2>             TestMerge2              { get { return this.GetTable<DB2ADMIN_TestMerge2>(); } }
 
 		public TESTDATADB()
 		{
@@ -51,6 +53,13 @@ namespace DB2DataContext
 
 		public TESTDATADB(string configuration)
 			: base(configuration)
+		{
+			InitDataContext();
+			InitMappingSchema();
+		}
+
+		public TESTDATADB(LinqToDbConnectionOptions options)
+			: base(options)
 		{
 			InitDataContext();
 			InitMappingSchema();
@@ -91,6 +100,13 @@ namespace DB2DataContext
 	{
 		[Column(DbType="INTEGER", DataType=LinqToDB.DataType.Int32), Nullable] public int? ParentID { get; set; } // INTEGER
 		[Column(DbType="INTEGER", DataType=LinqToDB.DataType.Int32), Nullable] public int? ChildID  { get; set; } // INTEGER
+	}
+
+	[Table(Schema="DB2ADMIN", Name="CreateIfNotExistsTable")]
+	public partial class DB2ADMIN_CreateIfNotExistsTable
+	{
+		[Column(DbType="INTEGER", DataType=LinqToDB.DataType.Int32), NotNull] public int Id    { get; set; } // INTEGER
+		[Column(DbType="INTEGER", DataType=LinqToDB.DataType.Int32), NotNull] public int Value { get; set; } // INTEGER
 	}
 
 	[Table(Schema="DB2ADMIN", Name="Doctor")]
@@ -366,80 +382,80 @@ namespace DB2DataContext
 
 	public static partial class TableExtensions
 	{
-		public static DB2ADMIN_ALLTYPE Find(this ITable<DB2ADMIN_ALLTYPE> table, int ID)
+		public static DB2ADMIN_ALLTYPE? Find(this ITable<DB2ADMIN_ALLTYPE> table, int ID)
 		{
 			return table.FirstOrDefault(t =>
 				t.ID == ID);
 		}
 
-		public static DB2ADMIN_Doctor Find(this ITable<DB2ADMIN_Doctor> table, int PersonID)
+		public static DB2ADMIN_Doctor? Find(this ITable<DB2ADMIN_Doctor> table, int PersonID)
 		{
 			return table.FirstOrDefault(t =>
 				t.PersonID == PersonID);
 		}
 
-		public static DB2ADMIN_InheritanceChild Find(this ITable<DB2ADMIN_InheritanceChild> table, int InheritanceChildId)
+		public static DB2ADMIN_InheritanceChild? Find(this ITable<DB2ADMIN_InheritanceChild> table, int InheritanceChildId)
 		{
 			return table.FirstOrDefault(t =>
 				t.InheritanceChildId == InheritanceChildId);
 		}
 
-		public static DB2ADMIN_InheritanceParent Find(this ITable<DB2ADMIN_InheritanceParent> table, int InheritanceParentId)
+		public static DB2ADMIN_InheritanceParent? Find(this ITable<DB2ADMIN_InheritanceParent> table, int InheritanceParentId)
 		{
 			return table.FirstOrDefault(t =>
 				t.InheritanceParentId == InheritanceParentId);
 		}
 
-		public static DB2ADMIN_KeepIdentityTest Find(this ITable<DB2ADMIN_KeepIdentityTest> table, int ID)
+		public static DB2ADMIN_KeepIdentityTest? Find(this ITable<DB2ADMIN_KeepIdentityTest> table, int ID)
 		{
 			return table.FirstOrDefault(t =>
 				t.ID == ID);
 		}
 
-		public static DB2ADMIN_MASTERTABLE Find(this ITable<DB2ADMIN_MASTERTABLE> table, int ID1, int ID2)
+		public static DB2ADMIN_MASTERTABLE? Find(this ITable<DB2ADMIN_MASTERTABLE> table, int ID1, int ID2)
 		{
 			return table.FirstOrDefault(t =>
 				t.ID1 == ID1 &&
 				t.ID2 == ID2);
 		}
 
-		public static DB2ADMIN_Patient Find(this ITable<DB2ADMIN_Patient> table, int PersonID)
+		public static DB2ADMIN_Patient? Find(this ITable<DB2ADMIN_Patient> table, int PersonID)
 		{
 			return table.FirstOrDefault(t =>
 				t.PersonID == PersonID);
 		}
 
-		public static DB2ADMIN_Person Find(this ITable<DB2ADMIN_Person> table, int PersonID)
+		public static DB2ADMIN_Person? Find(this ITable<DB2ADMIN_Person> table, int PersonID)
 		{
 			return table.FirstOrDefault(t =>
 				t.PersonID == PersonID);
 		}
 
-		public static DB2ADMIN_TestIdentity Find(this ITable<DB2ADMIN_TestIdentity> table, int ID)
+		public static DB2ADMIN_TestIdentity? Find(this ITable<DB2ADMIN_TestIdentity> table, int ID)
 		{
 			return table.FirstOrDefault(t =>
 				t.ID == ID);
 		}
 
-		public static DB2ADMIN_Testmerge1 Find(this ITable<DB2ADMIN_Testmerge1> table, int Id)
+		public static DB2ADMIN_Testmerge1? Find(this ITable<DB2ADMIN_Testmerge1> table, int Id)
 		{
 			return table.FirstOrDefault(t =>
 				t.Id == Id);
 		}
 
-		public static DB2ADMIN_TestMerge1 Find(this ITable<DB2ADMIN_TestMerge1> table, int Id)
+		public static DB2ADMIN_TestMerge1? Find(this ITable<DB2ADMIN_TestMerge1> table, int Id)
 		{
 			return table.FirstOrDefault(t =>
 				t.Id == Id);
 		}
 
-		public static DB2ADMIN_Testmerge2 Find(this ITable<DB2ADMIN_Testmerge2> table, int Id)
+		public static DB2ADMIN_Testmerge2? Find(this ITable<DB2ADMIN_Testmerge2> table, int Id)
 		{
 			return table.FirstOrDefault(t =>
 				t.Id == Id);
 		}
 
-		public static DB2ADMIN_TestMerge2 Find(this ITable<DB2ADMIN_TestMerge2> table, int Id)
+		public static DB2ADMIN_TestMerge2? Find(this ITable<DB2ADMIN_TestMerge2> table, int Id)
 		{
 			return table.FirstOrDefault(t =>
 				t.Id == Id);

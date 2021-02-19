@@ -15,6 +15,7 @@ using NUnit.Framework;
 
 namespace Tests.xUpdate
 {
+	using LinqToDB.Common;
 	using Model;
 
 	[TestFixture]
@@ -1196,7 +1197,7 @@ namespace Tests.xUpdate
 					where p.ParentID == 1
 					select p
 				)
-				.Set(p => p.ParentID, p => db.Child.SingleOrDefault(c => c.ChildID == 11).ParentID + 1000)
+				.Set(p => p.ParentID, p => db.Child.SingleOrDefault(c => c.ChildID == 11)!.ParentID + 1000)
 				.Update();
 
 				Assert.AreEqual(1, res);
@@ -1437,9 +1438,7 @@ namespace Tests.xUpdate
 			[Column] public string? col5 { get; set; }
 			[Column] public string? col6 { get; set; }
 
-			public static UpdateFromJoin[] Data = new UpdateFromJoin[]
-			{
-			};
+			public static UpdateFromJoin[] Data = Array<UpdateFromJoin>.Empty;
 		}
 
 		[Table("access_mode")]
@@ -1451,9 +1450,7 @@ namespace Tests.xUpdate
 			[Column]
 			public string? code { get; set; }
 
-			public static AccessMode[] Data = new AccessMode[]
-			{
-			};
+			public static AccessMode[] Data = Array<AccessMode>.Empty;
 		}
 
 		// https://stackoverflow.com/questions/57115728/
@@ -1482,7 +1479,7 @@ namespace Tests.xUpdate
 						(x1, y1) => new
 						{
 							gt    = x1.l,
-							theAM = y1.id
+							theAM = y1!.id
 						})
 					.Update(
 						gt_s_one,

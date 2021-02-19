@@ -6,8 +6,10 @@ using System.Linq;
 using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.DataProvider.Access;
+using LinqToDB.SchemaProvider;
 
 using NUnit.Framework;
+
 using Tests;
 using Tests.Model;
 
@@ -20,7 +22,7 @@ using Tests.Model;
 // ReSharper disable once TestClassNameSuffixWarning
 public class a_CreateData : TestBase
 {
-	static void RunScript(string configString, string divider, string name, Action<IDbConnection>? action = null, string? database = null)
+	static void RunScript(string configString, string divider, string name, Action<IDbConnection>? action = null, string? databaseName = null)
 	{
 		TestContext.WriteLine("=== " + name + " === \n");
 
@@ -42,23 +44,25 @@ public class a_CreateData : TestBase
 				break;
 		}
 
-		var cmds = text
-			.Replace("{DBNAME}", database)
-			.Replace("\r",    "")
-			.Replace(divider, "\x1")
-			.Split  ('\x1')
-			.Select (c => c.Trim())
-			.Where  (c => !string.IsNullOrEmpty(c))
-			.ToArray();
-
-		if (DataConnection.TraceSwitch.TraceInfo)
-			TestContext.WriteLine("Commands count: {0}", cmds.Length);
-
 		Exception? exception = null;
 
 		using (var db = new TestDataConnection(configString))
 		{
 			//db.CommandTimeout = 20;
+
+			var database = databaseName ?? db.Connection.Database;
+
+			var cmds = text
+				.Replace("{DBNAME}", database)
+				.Replace("\r",    "")
+				.Replace(divider, "\x1")
+				.Split  ('\x1')
+				.Select (c => c.Trim())
+				.Where  (c => !string.IsNullOrEmpty(c))
+				.ToArray();
+
+			if (DataConnection.TraceSwitch.TraceInfo)
+				TestContext.WriteLine("Commands count: {0}", cmds.Length);
 
 			foreach (var command in cmds)
 			{
@@ -106,7 +110,6 @@ public class a_CreateData : TestBase
 							if (exception == null)
 								exception = ex;
 						}
-
 					}
 				}
 			}
@@ -233,6 +236,11 @@ public class a_CreateData : TestBase
 		}
 	}
 
+	static void RunScript(CreateDataScript script)
+	{
+		RunScript(script.ConfigString, script.Divider, script.Name, script.Action, script.Database);
+	}
+
 	[Test, Order(0)]
 	public void CreateDatabase([CreateDatabaseSources] string context)
 	{
@@ -272,7 +280,7 @@ public class a_CreateData : TestBase
 			case ProviderName.Informix                         : RunScript(context,          "\nGO\n",  "Informix", InformixAction);       break;
 			case ProviderName.InformixDB2                      : RunScript(context,          "\nGO\n",  "Informix", InformixDB2Action);    break;
 			case ProviderName.DB2                              : RunScript(context,          "\nGO\n",  "DB2");                            break;
-			case ProviderName.DB2iSeries                       : RunScript(context,          "\nGO\n",  "DB2iSeries");                     break;
+			case ProviderName.DB2iSeries                       : RunScript(context,          "\nGO\n",   "DB2iSeries");                    break;
 			case ProviderName.SapHanaNative                    :
 			case ProviderName.SapHanaOdbc                      : RunScript(context,          ";;\n"  ,  "SapHana");                        break;
 			case ProviderName.Access                           : RunScript(context,          "\nGO\n",  "Access",   AccessAction);
@@ -282,11 +290,18 @@ public class a_CreateData : TestBase
 			case ProviderName.SqlCe                            : RunScript(context,          "\nGO\n",  "SqlCe");
 			                                                     RunScript(context+ ".Data", "\nGO\n",  "SqlCe");                          break;
 #if NET472
-			case ProviderName.Sybase                           : RunScript(context,          "\nGO\n",  "Sybase",   null, "TestData");     break;
-			case ProviderName.OracleNative                     :
-			case TestProvName.Oracle11Native                   : RunScript(context,          "\n/\n",   "Oracle");                         break;
+			case ProviderName.Sybase                              : RunScript(context,          "\nGO\n",  "Sybase");                      break;
+			case ProviderName.OracleNative                        :
+			case TestProvName.Oracle11Native                      : RunScript(context,          "\n/\n",   "Oracle");                      break;
 #endif
-			default: throw new InvalidOperationException(context);
+			default                                               :
+				var script = CustomizationSupport.Interceptor.InterceptCreateData(context);
+				if (script != null)
+				{
+					RunScript(script);
+					break;
+				}
+				throw new InvalidOperationException(context);
 		}
 	}
 
@@ -376,6 +391,20 @@ public class a_CreateData : TestBase
 					FIRSTNAME = "Jürgen",
 					LASTNAME  = "König",
 				});
+
+			var sp = conn.DataProvider.GetSchemaProvider();
+
+			var schema = sp.GetSchema(conn, new GetSchemaOptions { GetProcedures = false });
+
+			foreach (var table in schema.Tables)
+			{
+				if (table.TableName!.StartsWith("Animals") ||
+					table.TableName!.StartsWith("Eyes")    ||
+					table.TableName!.StartsWith("xxPatient"))
+				{
+					conn.Execute($"DROP TABLE \"{table.TableName}\"");
+				}
+			}
 		}
 	}
 

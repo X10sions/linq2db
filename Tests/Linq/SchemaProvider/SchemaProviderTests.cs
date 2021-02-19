@@ -68,7 +68,12 @@ namespace Tests.SchemaProvider
 					}
 				}
 
-				var table = dbSchema.Tables.SingleOrDefault(t => t.TableName!.ToLower() == "parent");
+				//Get table from default schema and fall back to schema indifferent
+				TableSchema getTable(string name) =>
+								dbSchema.Tables.SingleOrDefault(t => t.IsDefaultSchema && t.TableName!.ToLower() == name)
+							??  dbSchema.Tables.SingleOrDefault(t => t.TableName!.ToLower() == name)!;
+
+				var table = getTable("parent");
 
 				Assert.That(table,                                           Is.Not.Null);
 				Assert.That(table.Columns.Count(c => c.ColumnName != "_ID"), Is.EqualTo(2));
@@ -77,21 +82,23 @@ namespace Tests.SchemaProvider
 				AssertType<Model.Parent>       (conn.MappingSchema, dbSchema);
 
 				if (context != ProviderName.AccessOdbc)
-					Assert.That(dbSchema.Tables.Single(t => t.TableName!.ToLower() == "doctor").ForeignKeys.Count, Is.EqualTo(1));
+					Assert.That(getTable("doctor").ForeignKeys.Count, Is.EqualTo(1));
 				else // no FK information for ACCESS ODBC
 					Assert.That(dbSchema.Tables.Single(t => t.TableName!.ToLower() == "doctor").ForeignKeys.Count, Is.EqualTo(0));
 
 				switch (context)
 				{
-					case ProviderName.SqlServer2000 :
-					case ProviderName.SqlServer2005 :
-					case ProviderName.SqlServer2008 :
-					case ProviderName.SqlServer2012 :
-					case ProviderName.SqlServer2014 :
-					case TestProvName.SqlServer2016 :
-					case ProviderName.SqlServer2017 :
-					case TestProvName.SqlServer2019 :
-					case TestProvName.SqlAzure      :
+					case ProviderName.SqlServer2000                       :
+					case ProviderName.SqlServer2005                       :
+					case ProviderName.SqlServer2008                       :
+					case ProviderName.SqlServer2012                       :
+					case ProviderName.SqlServer2014                       :
+					case TestProvName.SqlServer2016                       :
+					case ProviderName.SqlServer2017                       :
+					case TestProvName.SqlServer2019                       :
+					case TestProvName.SqlServer2019SequentialAccess       :
+					case TestProvName.SqlServer2019FastExpressionCompiler :
+					case TestProvName.SqlAzure                            :
 						{
 							var indexTable = dbSchema.Tables.Single(t => t.TableName == "IndexTable");
 							Assert.That(indexTable.ForeignKeys.Count,                Is.EqualTo(1));
@@ -104,20 +111,22 @@ namespace Tests.SchemaProvider
 						{
 							var indexTable = dbSchema.Tables.First(t => t.TableName == "testunique");
 							Assert.That(indexTable.Columns.Count(c => c.IsPrimaryKey), Is.EqualTo(2));
-							Assert.That(indexTable.ForeignKeys.Count(), Is.EqualTo(2));
+							Assert.That(indexTable.ForeignKeys.Count, Is.EqualTo(2));
 						}
 						break;
 				}
 
 				switch (context)
 				{
-					case ProviderName.SqlServer2008 :
-					case ProviderName.SqlServer2012 :
-					case ProviderName.SqlServer2014 :
-					case TestProvName.SqlServer2016 :
-					case ProviderName.SqlServer2017 :
-					case TestProvName.SqlServer2019 :
-					case TestProvName.SqlAzure      :
+					case ProviderName.SqlServer2008                       :
+					case ProviderName.SqlServer2012                       :
+					case ProviderName.SqlServer2014                       :
+					case TestProvName.SqlServer2016                       :
+					case ProviderName.SqlServer2017                       :
+					case TestProvName.SqlServer2019                       :
+					case TestProvName.SqlServer2019SequentialAccess       :
+					case TestProvName.SqlServer2019FastExpressionCompiler :
+					case TestProvName.SqlAzure                            :
 						{
 							var tbl = dbSchema.Tables.Single(at => at.TableName == "AllTypes");
 							var col = tbl.Columns.First(c => c.ColumnName == "datetimeoffset3DataType");
@@ -135,14 +144,14 @@ namespace Tests.SchemaProvider
 		{
 			var e = mappingSchema.GetEntityDescriptor(typeof(T));
 
-			var schemaTable = dbSchema.Tables.FirstOrDefault(_ => _.TableName!.Equals(e.TableName, StringComparison.OrdinalIgnoreCase));
+			var schemaTable = dbSchema.Tables.FirstOrDefault(_ => _.TableName!.Equals(e.TableName, StringComparison.OrdinalIgnoreCase))!;
 			Assert.IsNotNull(schemaTable, e.TableName);
 
 			Assert.That(schemaTable.Columns.Count >= e.Columns.Count);
 
 			foreach (var column in e.Columns)
 			{
-				var schemaColumn = schemaTable.Columns.FirstOrDefault(_ => _.ColumnName.Equals(column.ColumnName, StringComparison.InvariantCultureIgnoreCase));
+				var schemaColumn = schemaTable.Columns.FirstOrDefault(_ => _.ColumnName.Equals(column.ColumnName, StringComparison.InvariantCultureIgnoreCase))!;
 				Assert.IsNotNull(schemaColumn, column.ColumnName);
 
 				if (column.CanBeNull)

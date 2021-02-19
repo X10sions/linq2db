@@ -73,7 +73,7 @@ namespace LinqToDB.Linq.Builder
 		{
 			var count = members.Length - startIndex;
 			if (count == 0)
-				throw new ArgumentException();
+				throw new ArgumentOutOfRangeException(nameof(startIndex));
 
 			if (count == 1)
 				return members[startIndex];
@@ -651,9 +651,6 @@ namespace LinqToDB.Linq.Builder
 
 		public static Expression? GenerateAssociationExpression(ExpressionBuilder builder, IBuildContext context, Expression expression, AssociationDescriptor association)
 		{
-			if (!Common.Configuration.Linq.AllowMultipleQuery)
-				throw new LinqException("Multiple queries are not allowed. Set the 'LinqToDB.Common.Configuration.Linq.AllowMultipleQuery' flag to 'true' to allow multiple queries.");
-
 			var initialMainQuery = ValidateMainQuery(builder.Expression);
 			var mainQuery        = RemoveProjection(initialMainQuery);
 			var mappingSchema    = builder.MappingSchema;
@@ -1405,6 +1402,8 @@ namespace LinqToDB.Linq.Builder
 				.SelectMany(detailQueryLambda,
 					(main, detail) => new KeyDetailEnvelope<TKey, TD>
 					{
+						// don't replace with CompileExpression extension point
+						// Compile will be replaced with expression embedding
 						Key    = selectKeyExpression.Compile()(main),
 						Detail = detail
 					});
@@ -1433,31 +1432,37 @@ namespace LinqToDB.Linq.Builder
 
 			correctedExpression = expr.Transform(e =>
 			{
-				if (e.NodeType == ExpressionType.MemberAccess 
-				    || e.NodeType == ExpressionType.Call && ((MethodCallExpression)e).IsSameGenericMethod(ParameterContainer.GetValueMethodInfo))
+				if (!knownParameters.TryGetValue(e, out var registered))
 				{
-					if (!knownParameters.TryGetValue(e, out var registered))
+					if (e.NodeType == ExpressionType.MemberAccess || e.NodeType == ExpressionType.Call)
 					{
+						if (e is MethodCallExpression mc)
+						{
+							if (mc.IsQueryable())
+								return e;
+						}
+
 						// registering missed parameters
 						registered = builder.RegisterParameter(e);
 					}
-
-					if (registered != null)
-					{
-						if (!indexes.TryGetValue(registered, out var accessExpression))
-						{
-							var idx = containerLocal.RegisterAccessor(registered);
-
-							accessExpression = Expression.Call(Expression.Constant(containerLocal),
-								ParameterContainer.GetValueMethodInfo.MakeGenericMethod(e.Type),
-								Expression.Constant(idx));
-
-							indexes.Add(registered, accessExpression);
-						}
-
-						return accessExpression;
-					}
 				}
+
+				if (registered != null)
+				{
+					if (!indexes.TryGetValue(registered, out var accessExpression))
+					{
+						var idx = containerLocal.RegisterAccessor(registered);
+
+						accessExpression = Expression.Call(Expression.Constant(containerLocal),
+							ParameterContainer.GetValueMethodInfo.MakeGenericMethod(e.Type),
+							Expression.Constant(idx));
+
+						indexes.Add(registered, accessExpression);
+					}
+
+					return accessExpression;
+				}
+
 				return e;
 			});
 		}
@@ -1500,7 +1505,7 @@ namespace LinqToDB.Linq.Builder
 			// Finalize keys for recursive processing
 			var expression = detailQuery.Expression;
 			expression     = builder.ExposeExpression(expression);
-			expression     = FinalizeExpressionKeys(expression);
+			expression     = FinalizeExpressionKeys(new HashSet<Expression>(), expression);
 
 			// Filler code is duplicated for the future usage with IAsyncEnumerable
 			var idx = builder.RegisterPreamble((dc, expr, ps) =>
@@ -1658,7 +1663,7 @@ namespace LinqToDB.Linq.Builder
 				if (b.NodeType == ExpressionType.MemberAccess)
 				{
 					var ma = (MemberExpression)b;
-					if (ma.Expression.NodeType == ExpressionType.Parameter)
+					if (ma.Expression?.NodeType == ExpressionType.Parameter)
 					{
 						var idx = before.IndexOf((ParameterExpression)ma.Expression);
 						if (idx >= 0)
@@ -1698,13 +1703,19 @@ namespace LinqToDB.Linq.Builder
 		}
 
 		[return: NotNullIfNotNull("expr")]
-		internal static Expression? FinalizeExpressionKeys(Expression? expr)
+		internal static Expression? FinalizeExpressionKeys(HashSet<Expression> stable, Expression? expr)
 		{
 			if (expr == null)
 				return null;
 
+			if (stable.Contains(expr))
+				return expr;
+
 			var result = expr.Transform(e =>
 			{
+				if (stable.Contains(e))
+					return e;
+
 				switch (e.NodeType)
 				{
 					case ExpressionType.MemberInit:
@@ -1715,14 +1726,14 @@ namespace LinqToDB.Linq.Builder
 								var mi = (MemberInitExpression)e;
 								var newAssignments = mi.Bindings.Cast<MemberAssignment>().Select(a =>
 									{
-										var finalized = FinalizeExpressionKeys(a.Expression);
+										var finalized = FinalizeExpressionKeys(stable, a.Expression);
 										return Expression.Bind(GetMemberForType(newType, a.Member), finalized);
 									})
 									.ToArray();
 
 								var newMemberInit = Expression.MemberInit(
 									Expression.New(newType.GetConstructor(Array<Type>.Empty) ??
-												   throw new ArgumentException()), newAssignments);
+												   throw new InvalidOperationException($"Default constructor not found for type {newType}")), newAssignments);
 								return newMemberInit;
 							}
 
@@ -1732,7 +1743,7 @@ namespace LinqToDB.Linq.Builder
 						{
 							var unary      = (UnaryExpression)e;
 							var newType    = FinalizeType(unary.Type);
-							var newOperand = FinalizeExpressionKeys(unary.Operand);
+							var newOperand = FinalizeExpressionKeys(stable, unary.Operand);
 							if (newType != unary.Type || newOperand != unary.Operand)
 								return Expression.Convert(newOperand, newType);
 							break;
@@ -1744,7 +1755,7 @@ namespace LinqToDB.Linq.Builder
 							var changed = false;
 							var newArguments = mc.Arguments.Select(a =>
 							{
-								var n = FinalizeExpressionKeys(a);
+								var n = FinalizeExpressionKeys(stable, a);
 								changed = changed || n != a;
 								return n;
 							}).ToArray();
@@ -1774,7 +1785,7 @@ namespace LinqToDB.Linq.Builder
 					case ExpressionType.MemberAccess:
 						{
 							var ma     = (MemberExpression)e;
-							var newObj = FinalizeExpressionKeys(ma.Expression);
+							var newObj = FinalizeExpressionKeys(stable, ma.Expression);
 							if (newObj != ma.Expression)
 							{
 								return Expression.MakeMemberAccess(newObj, GetMemberForType(newObj.Type, ma.Member));
@@ -1802,7 +1813,7 @@ namespace LinqToDB.Linq.Builder
 								})
 								.ToArray();
 
-							var newBody = FinalizeExpressionKeys(lambda.Body);
+							var newBody = FinalizeExpressionKeys(stable, lambda.Body);
 							if (changed || newBody != lambda.Body)
 							{
 								newBody = ReplaceParametersWithChangedType(newBody, lambda.Parameters, newParameters);
@@ -1815,6 +1826,11 @@ namespace LinqToDB.Linq.Builder
 
 				return e;
 			});
+
+			if (ReferenceEquals(expr, result))
+			{
+				stable.Add(expr);
+			}
 
 			return result;
 		}

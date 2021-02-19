@@ -103,7 +103,7 @@ namespace LinqToDB.DataProvider.Informix
 
 				if (connection != null)
 				{
-					var enumerator = source.GetAsyncEnumerator();
+					var enumerator = source.GetAsyncEnumerator(cancellationToken);
 					await using (enumerator.ConfigureAwait(Common.Configuration.ContinueOnCapturedContext))
 					{
 						// call the synchronous provider-specific implementation
@@ -181,7 +181,7 @@ namespace LinqToDB.DataProvider.Informix
 
 				TraceAction(
 					dataConnection,
-					() => "INSERT BULK " + tableName + "(" + string.Join(", ", columns.Select(x => x.ColumnName)) + Environment.NewLine,
+					() => "INSERT BULK " + tableName + "(" + string.Join(", ", columns.Select(x => x.ColumnName)) + ")" + Environment.NewLine,
 					() => { bc.WriteToServer(rd); return rd.Count; });
 			}
 

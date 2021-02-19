@@ -17,6 +17,12 @@ using NUnit.Framework;
 
 namespace Tests.Linq
 {
+	using System.Data;
+	using System.Data.Common;
+	using System.Threading;
+	using System.Threading.Tasks;
+	using LinqToDB.Common;
+	using LinqToDB.Data.DbCommandProcessor;
 	using Model;
 
 	[TestFixture]
@@ -583,7 +589,7 @@ namespace Tests.Linq
 			using (var db = GetDataContext(context))
 			{
 				var arr = new List<Person> { new Person() };
-				var p = db.Person.Select(person => new { person.ID, Arr = arr.Take(1) }).FirstOrDefault();
+				var p = db.Person.Select(person => new { person.ID, Arr = arr.Take(1) }).FirstOrDefault()!;
 
 				p.Arr.Single();
 			}
@@ -923,9 +929,13 @@ namespace Tests.Linq
 					TestProvName.AllSapHana)]
 				string context)
 		{
+			var sql = "select PersonID, FirstName, MiddleName, LastName, Gender from Person where PersonID = 3";
+			if (context.Contains("Oracle"))
+				sql = "select \"PersonID\", \"FirstName\", \"MiddleName\", \"LastName\", \"Gender\" from \"Person\" where \"PersonID\" = 3";
+
 			using (var db = new TestDataConnection(context))
 			{
-				var person = db.Query<ComplexPerson>("select PersonID, FirstName, MiddleName, LastName, Gender from Person where PersonID = 3").FirstOrDefault();
+				var person = db.Query<ComplexPerson>(sql).FirstOrDefault()!;
 
 				Assert.NotNull(person);
 				Assert.AreEqual(3, person.ID);
@@ -975,7 +985,7 @@ namespace Tests.Linq
 			public static implicit operator DtoChildEntityObject?(ChildEntityObject a)
 			{
 				if (a == null) return null;
-				return OwnerImpl().Compile()(a);
+				return OwnerImpl().CompileExpression()(a);
 			}
 
 		}
@@ -1022,7 +1032,6 @@ namespace Tests.Linq
 		public void TestConditionalInProjection([IncludeDataSources(true, TestProvName.AllSQLite)] string context)
 		{
 			using (var db = GetDataContext(context))
-			using (new AllowMultipleQuery())
 			using (db.CreateLocalTable(new []
 			{
 				new MainEntityObject{Id = 1, MainValue = "MainValue 1"}, 
@@ -1255,6 +1264,8 @@ namespace Tests.Linq
 		[Test]
 		public void Select_TernaryNullableValue([DataSources] string context, [Values(null, 0, 1)] int? value)
 		{
+			// mapping fails and fallbacks to slow-mapper
+			using (new CustomCommandProcessor(null))
 			using (var db = GetDataContext(context))
 			{
 				var result = db.Select(() => Sql.AsSql(value) == null ? (int?)null : Sql.AsSql(value!.Value));
@@ -1269,6 +1280,8 @@ namespace Tests.Linq
 		[Test]
 		public void Select_TernaryNullableValueReversed([DataSources] string context, [Values(null, 0, 1)] int? value)
 		{
+			// mapping fails and fallbacks to slow-mapper
+			using (new CustomCommandProcessor(null))
 			using (var db = GetDataContext(context))
 			{
 				var result = db.Select(() => Sql.AsSql(value) != null ? Sql.AsSql(value!.Value) : (int?)null);
@@ -1283,6 +1296,8 @@ namespace Tests.Linq
 		[ActiveIssue(Configurations = new[] { TestProvName.AllInformix, ProviderName.DB2 })]
 		public void Select_TernaryNullableValue_Nested([DataSources] string context, [Values(null, 0, 1)] int? value)
 		{
+			// mapping fails and fallbacks to slow-mapper
+			using (new CustomCommandProcessor(null))
 			using (var db = GetDataContext(context))
 			{
 				var result = db.Select(() => Sql.AsSql(value) == null ? (int?)null : (Sql.AsSql(value!.Value) < 2 ? Sql.AsSql(value.Value) : 2 + Sql.AsSql(value.Value)));
@@ -1297,6 +1312,8 @@ namespace Tests.Linq
 		[ActiveIssue(Configurations = new[] { TestProvName.AllInformix, ProviderName.DB2 })]
 		public void Select_TernaryNullableValueReversed_Nested([DataSources] string context, [Values(null, 0, 1)] int? value)
 		{
+			// mapping fails and fallbacks to slow-mapper
+			using (new CustomCommandProcessor(null))
 			using (var db = GetDataContext(context))
 			{
 				var result = db.Select(() => Sql.AsSql(value) != null ? (Sql.AsSql(value!.Value) < 2 ? Sql.AsSql(value.Value) : Sql.AsSql(value.Value) + 4) : (int?)null);
@@ -1654,5 +1671,53 @@ namespace Tests.Linq
 				q.ToArray();
 			}
 		}
+
+		#region SequentialAccess (#2116)
+		[Test(Description = "https://github.com/linq2db/linq2db/issues/2116")]
+		public void SequentialAccessTest([DataSources] string context)
+		{
+			// providers that support SequentialAccess:
+			// Access (OleDb)
+			// MySql.Data
+			// npgsql
+			// System.Data.SqlClient
+			// Microsoft.Data.SqlClient
+			// SqlCe
+			using (new OptimizeForSequentialAccess(true))
+			using (new CustomCommandProcessor(new SequentialAccessCommandProcessor()))
+			using (var db = GetDataContext(context))
+			{
+				var q = db.Person
+					.Select(p => new
+					{
+						FirstName  = p.FirstName,
+						ID         = p.ID,
+						IDNullable = Sql.ToNullable(p.ID),
+						LastName   = p.LastName,
+						FullName   = $"{p.FirstName} {p.LastName}"
+					});
+
+				foreach (var p in q.ToArray())
+					Assert.AreEqual($"{p.FirstName} {p.LastName}", p.FullName);
+			}
+		}
+
+		[Test]
+		public void SequentialAccessTest_Complex([DataSources] string context)
+		{
+			// fields read out-of-order, multiple times and with different types
+			using (new OptimizeForSequentialAccess(true))
+			using (new CustomCommandProcessor(new SequentialAccessCommandProcessor()))
+			using (var db = GetDataContext(context))
+			{
+				Assert.AreEqual(typeof(InheritanceParentBase), InheritanceParent[0].GetType());
+				Assert.AreEqual(typeof(InheritanceParent1)   , InheritanceParent[1].GetType());
+				Assert.AreEqual(typeof(InheritanceParent2)   , InheritanceParent[2].GetType());
+
+				AreEqual(InheritanceParent, db.InheritanceParent);
+				AreEqual(InheritanceChild, db.InheritanceChild);
+			}
+		}
+		#endregion
 	}
 }

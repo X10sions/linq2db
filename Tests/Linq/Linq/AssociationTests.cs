@@ -536,7 +536,6 @@ namespace Tests.Linq
 		[Test]
 		public void Issue148Test([DataSources] string context)
 		{
-			using (new AllowMultipleQuery())
 			using (var db = GetDataContext(context))
 			{
 				var q =
@@ -711,7 +710,7 @@ namespace Tests.Linq
 
 				var list = q.ToList();
 
-				Assert.AreEqual(1, list.Count());
+				Assert.AreEqual(1, list.Count);
 			}
 		}
 

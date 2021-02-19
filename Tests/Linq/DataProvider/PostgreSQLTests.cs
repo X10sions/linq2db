@@ -50,6 +50,8 @@ namespace Tests.DataProvider
 		[Test]
 		public void TestParameters([IncludeDataSources(TestProvName.AllPostgreSQL)] string context)
 		{
+			// mapping fails and fallbacks to slow-mapper
+			using (new CustomCommandProcessor(null))
 			using (var conn = new DataConnection(context))
 			{
 				Assert.That(conn.Execute<string>("SELECT :p"       , new { p = "1" }),                                Is.EqualTo("1"));
@@ -110,7 +112,7 @@ namespace Tests.DataProvider
 
 			readonly string _providerName;
 
-			public IEnumerable<TestMethod> BuildFrom(IMethodInfo method, Test suite)
+			public IEnumerable<TestMethod> BuildFrom(IMethodInfo method, Test? suite)
 			{
 				var tests = UserProviders.Contains(_providerName) ?
 					new[]
@@ -446,8 +448,8 @@ namespace Tests.DataProvider
 				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.VarBinary("p", arr1)), Is.EqualTo(arr1));
 				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.Create("p", arr1)), Is.EqualTo(arr1));
 				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.VarBinary("p", null)), Is.EqualTo(null));
-				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.VarBinary("p", new byte[0])), Is.EqualTo(new byte[0]));
-				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.Image("p", new byte[0])), Is.EqualTo(new byte[0]));
+				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.VarBinary("p", Array<byte>.Empty)), Is.EqualTo(Array<byte>.Empty));
+				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.Image("p", Array<byte>.Empty)), Is.EqualTo(Array<byte>.Empty));
 				Assert.That(conn.Execute<byte[]>("SELECT @p", new DataParameter { Name = "p", Value = arr1 }), Is.EqualTo(arr1));
 				Assert.That(conn.Execute<byte[]>("SELECT @p", DataParameter.Create("p", new Binary(arr1))), Is.EqualTo(arr1));
 				Assert.That(conn.Execute<byte[]>("SELECT @p", new DataParameter("p", new Binary(arr1))), Is.EqualTo(arr1));
@@ -806,7 +808,7 @@ namespace Tests.DataProvider
 				db.Insert(e);
 
 				var e2 = db.GetTable<CreateTableTestClass>()
-					.FirstOrDefault(_ => _.Guid == e.Guid);
+					.FirstOrDefault(_ => _.Guid == e.Guid)!;
 
 				Assert.IsNotNull(e2);
 				Assert.AreEqual(e.Guid, e2.Guid);
@@ -827,8 +829,8 @@ namespace Tests.DataProvider
 			Assert.IsNotNull(c1);
 			Assert.IsNotNull(c2);
 
-			Assert.AreEqual(o, c1!.Compile()(d));
-			Assert.AreEqual(o, c2!.Compile()(d)!.Value);
+			Assert.AreEqual(o, c1!.CompileExpression()(d));
+			Assert.AreEqual(o, c2!.CompileExpression()(d)!.Value);
 		}
 
 		[Table]
@@ -1047,7 +1049,7 @@ namespace Tests.DataProvider
 				finally
 				{
 					if (mode == BulkTestMode.WithoutTransaction)
-						db.GetTable<AllTypes>().Where(_ => ids.Contains(_.ID)).Delete();
+						db.GetTable<AllTypes>().Where(_ => ids!.Contains(_.ID)).Delete();
 				}
 
 				if (mode == BulkTestMode.WithRollback)
@@ -1197,11 +1199,11 @@ namespace Tests.DataProvider
 				finally
 				{
 					if (mode == BulkTestMode.WithoutTransaction)
-						db.GetTable<AllTypes>().Where(_ => ids.Contains(_.ID)).Delete();
+						db.GetTable<AllTypes>().Where(_ => ids!.Contains(_.ID)).Delete();
 				}
 
 				if (mode == BulkTestMode.WithRollback)
-					Assert.AreEqual(0, db.GetTable<AllTypes>().Where(_ => ids.Contains(_.ID)).Count());
+					Assert.AreEqual(0, db.GetTable<AllTypes>().Where(_ => ids!.Contains(_.ID)).Count());
 			}
 		}
 
@@ -1524,6 +1526,121 @@ namespace Tests.DataProvider
 				await db.BulkCopyAsync(items);
 
 				var loadedItems = table.ToArray();
+			}
+		}
+
+		class ExtraBulkCopyTypesTable
+		{
+			[Column] public int     Id     { get; set; }
+			[Column] public byte?   Byte   { get; set; }
+			[Column] public sbyte?  SByte  { get; set; }
+			[Column] public short?  Int16  { get; set; }
+			[Column] public ushort? UInt16 { get; set; }
+			[Column] public int?    Int32  { get; set; }
+			[Column] public uint?   UInt32 { get; set; }
+			[Column] public long?   Int64  { get; set; }
+			[Column] public ulong?  UInt64 { get; set; }
+		}
+
+		[Test]
+		public void TestExtraTypesBulkCopy([IncludeDataSources(TestProvName.AllPostgreSQL)] string context, [Values] BulkCopyType type)
+		{
+			using (var db    = (DataConnection)GetDataContext(context))
+			using (var table = db.CreateLocalTable<ExtraBulkCopyTypesTable>())
+			{
+				var items = new []
+				{
+					new ExtraBulkCopyTypesTable() { Id = 1 },
+					new ExtraBulkCopyTypesTable()
+					{
+						Id     = 2,
+						Byte   = byte.MaxValue,
+						SByte  = sbyte.MaxValue,
+						Int16  = short.MaxValue,
+						UInt16 = ushort.MaxValue,
+						Int32  = int.MaxValue,
+						UInt32 = uint.MaxValue,
+						Int64  = long.MaxValue,
+						UInt64 = ulong.MaxValue,
+					}
+				};
+
+				db.BulkCopy(new BulkCopyOptions() { BulkCopyType = type }, items);
+
+				var result = table.OrderBy(_ => _.Id).ToArray();
+
+				Assert.AreEqual(2, result.Length);
+
+				Assert.AreEqual(1, result[0].Id);
+				Assert.IsNull(result[0].Byte);
+				Assert.IsNull(result[0].SByte);
+				Assert.IsNull(result[0].Int16);
+				Assert.IsNull(result[0].UInt16);
+				Assert.IsNull(result[0].Int32);
+				Assert.IsNull(result[0].UInt32);
+				Assert.IsNull(result[0].Int64);
+				Assert.IsNull(result[0].UInt64);
+
+				Assert.AreEqual(2              , result[1].Id);
+				Assert.AreEqual(byte.MaxValue  , result[1].Byte);
+				Assert.AreEqual(sbyte.MaxValue , result[1].SByte);
+				Assert.AreEqual(short.MaxValue , result[1].Int16);
+				Assert.AreEqual(ushort.MaxValue, result[1].UInt16);
+				Assert.AreEqual(int.MaxValue   , result[1].Int32);
+				Assert.AreEqual(uint.MaxValue  , result[1].UInt32);
+				Assert.AreEqual(long.MaxValue  , result[1].Int64);
+				Assert.AreEqual(ulong.MaxValue , result[1].UInt64);
+			}
+		}
+
+		[Test]
+		public async Task TestExtraTypesBulkCopyAsync([IncludeDataSources(TestProvName.AllPostgreSQL)] string context, [Values] BulkCopyType type)
+		{
+			using (var db = (DataConnection)GetDataContext(context))
+			using (var table = db.CreateLocalTable<ExtraBulkCopyTypesTable>())
+			{
+				var items = new []
+				{
+					new ExtraBulkCopyTypesTable() { Id = 1 },
+					new ExtraBulkCopyTypesTable()
+					{
+						Id     = 2,
+						Byte   = byte.MaxValue,
+						SByte  = sbyte.MaxValue,
+						Int16  = short.MaxValue,
+						UInt16 = ushort.MaxValue,
+						Int32  = int.MaxValue,
+						UInt32 = uint.MaxValue,
+						Int64  = long.MaxValue,
+						UInt64 = ulong.MaxValue,
+					}
+				};
+
+				await db.BulkCopyAsync(new BulkCopyOptions() { BulkCopyType = type }, items);
+
+				var result = await table.OrderBy(_ => _.Id).ToArrayAsync();
+
+				Assert.AreEqual(2, result.Length);
+
+				Assert.AreEqual(1, result[0].Id);
+				Assert.IsNull(result[0].Byte);
+				Assert.IsNull(result[0].SByte);
+				Assert.IsNull(result[0].Int16);
+				Assert.IsNull(result[0].UInt16);
+				Assert.IsNull(result[0].Int32);
+				Assert.IsNull(result[0].UInt32);
+				Assert.IsNull(result[0].Int64);
+				Assert.IsNull(result[0].UInt64);
+
+				Assert.AreEqual(2              , result[1].Id);
+				Assert.AreEqual(byte.MaxValue  , result[1].Byte);
+				Assert.AreEqual(sbyte.MaxValue , result[1].SByte);
+				Assert.AreEqual(short.MaxValue , result[1].Int16);
+				Assert.AreEqual(ushort.MaxValue, result[1].UInt16);
+				Assert.AreEqual(int.MaxValue   , result[1].Int32);
+				Assert.AreEqual(uint.MaxValue  , result[1].UInt32);
+				Assert.AreEqual(long.MaxValue  , result[1].Int64);
+				Assert.AreEqual(ulong.MaxValue , result[1].UInt64);
 			}
 		}
 
@@ -1955,7 +2072,7 @@ namespace Tests.DataProvider
 		[Sql.TableFunction("\"TestTableFunctionSchema\"")]
 		public LinqToDB.ITable<PostgreSQLTests.AllTypes> GetAllTypes()
 		{
-			var methodInfo = typeof(TestPgFunctions).GetMethod("GetAllTypes", new Type[0])!;
+			var methodInfo = typeof(TestPgFunctions).GetMethod("GetAllTypes", Array<Type>.Empty)!;
 
 			return _ctx.GetTable<PostgreSQLTests.AllTypes>(this, methodInfo);
 		}

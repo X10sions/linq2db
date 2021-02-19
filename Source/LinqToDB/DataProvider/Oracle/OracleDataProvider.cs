@@ -43,8 +43,8 @@ namespace LinqToDB.DataProvider.Oracle
 
 			SetCharField            ("Char",  (r, i) => r.GetString(i).TrimEnd(' '));
 			SetCharField            ("NChar", (r, i) => r.GetString(i).TrimEnd(' '));
-			SetCharFieldToType<char>("Char",  (r, i) => DataTools.GetChar(r, i));
-			SetCharFieldToType<char>("NChar", (r, i) => DataTools.GetChar(r, i));
+			SetCharFieldToType<char>("Char",  DataTools.GetCharExpression);
+			SetCharFieldToType<char>("NChar", DataTools.GetCharExpression);
 
 			if (version == OracleVersion.v11)
 				_sqlOptimizer = new Oracle11SqlOptimizer(SqlProviderFlags);
@@ -255,6 +255,7 @@ namespace LinqToDB.DataProvider.Oracle
 				case DataType.NVarChar : type = OracleProviderAdapter.OracleDbType.NVarchar2   ; break;
 				case DataType.Long     : type = OracleProviderAdapter.OracleDbType.Long        ; break;
 				case DataType.LongRaw  : type = OracleProviderAdapter.OracleDbType.LongRaw     ; break;
+				case DataType.Json     : type = OracleProviderAdapter.OracleDbType.Json        ; break;
 			}
 
 			if (type != null)

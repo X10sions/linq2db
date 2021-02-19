@@ -132,7 +132,7 @@ namespace Tests.UserTests
 				var ex = Assert.Catch(() => sp.GetSchema(db, new GetSchemaOptions()
 				{
 					GetTables = false
-				}));
+				}))!;
 
 				Assert.IsInstanceOf<InvalidOperationException>(ex);
 				Assert.IsTrue(ex.Message.Contains("requires the command to have a transaction"));
@@ -152,7 +152,7 @@ namespace Tests.UserTests
 				var ex = Assert.Catch(() => sp.GetSchema(db, new GetSchemaOptions()
 				{
 					GetTables = false
-				}));
+				}))!;
 
 				Assert.IsInstanceOf<LinqToDBException>(ex);
 				Assert.AreEqual("Cannot read schema with GetSchemaOptions.GetProcedures = true from transaction. Remove transaction or set GetSchemaOptions.GetProcedures to false", ex.Message);

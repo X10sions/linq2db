@@ -251,9 +251,6 @@ namespace LinqToDB.Data
 					DataProvider     = ci.DataProvider;
 					ConnectionString = ci.ConnectionString;
 					MappingSchema    = DataProvider.MappingSchema;
-					RetryPolicy      = Configuration.RetryPolicy.Factory != null
-										? Configuration.RetryPolicy.Factory(this)
-										: null;
 					break;
 
 				case ConnectionSetupType.ConnectionString:
@@ -319,6 +316,10 @@ namespace LinqToDB.Data
 				default:
 					throw new NotImplementedException($"SetupType: {options.SetupType}");
 			}
+
+			RetryPolicy = Configuration.RetryPolicy.Factory != null
+					? Configuration.RetryPolicy.Factory(this)
+					: null;
 
 			if (options.DataProvider != null)
 			{
@@ -1092,6 +1093,8 @@ namespace LinqToDB.Data
 				if (RetryPolicy != null)
 					_connection = new RetryingDbConnection(this, _connection, RetryPolicy);
 			}
+			else if (RetryPolicy != null && _connection is not RetryingDbConnection)
+				_connection = new RetryingDbConnection(this, _connection, RetryPolicy);
 
 			if (_connection.State == ConnectionState.Closed)
 			{
@@ -1174,6 +1177,11 @@ namespace LinqToDB.Data
 		/// </summary>
 		public string? LastQuery;
 
+		/// <summary>
+		/// Contains last parameters, sent to database using current connection.
+		/// </summary>
+		public IDataParameterCollection? LastParameters;
+
 		internal void InitCommand(CommandType commandType, string sql, DataParameter[]? parameters, List<string>? queryHints, bool withParameters)
 		{
 			if (queryHints?.Count > 0)
@@ -1185,6 +1193,7 @@ namespace LinqToDB.Data
 
 			DataProvider.InitCommand(this, commandType, sql, parameters, withParameters);
 			LastQuery = Command.CommandText;
+			LastParameters = Command.Parameters;
 		}
 
 		private int? _commandTimeout;
@@ -1608,11 +1617,13 @@ namespace LinqToDB.Data
 		public DataConnection AddMappingSchema(MappingSchema mappingSchema)
 		{
 			var key = new { BaseSchema = MappingSchema.ConfigurationID, AddedSchema = mappingSchema.ConfigurationID };
-			MappingSchema = _combinedSchemas.GetOrCreate(key, 
-				o => 
+			MappingSchema = _combinedSchemas.GetOrCreate(
+				key,
+				new { BaseSchema = MappingSchema, AddedSchema = mappingSchema },
+				static (entry, key, context) => 
 				{
-					o.SlidingExpiration = Common.Configuration.Linq.CacheSlidingExpiration;
-					return new MappingSchema(mappingSchema, MappingSchema);
+					entry.SlidingExpiration = Common.Configuration.Linq.CacheSlidingExpiration;
+					return new MappingSchema(context.AddedSchema, context.BaseSchema);
 				});
 			_id            = null;
 

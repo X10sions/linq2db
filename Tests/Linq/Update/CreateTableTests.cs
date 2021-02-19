@@ -82,14 +82,16 @@ namespace Tests.xUpdate
 				{
 					switch (context)
 					{
-						case ProviderName.SqlServer2008 :
-						case ProviderName.SqlServer2012 :
-						case ProviderName.SqlServer2014 :
-						case TestProvName.SqlServer2016 :
-						case ProviderName.SqlServer2017 :
-						case TestProvName.SqlServer2019 :
-						case TestProvName.SqlAzure      : db.DropTable<TestTable>("#" + tableName); break;
-						default                         : db.DropTable<TestTable>(tableName);       break;
+						case ProviderName.SqlServer2008                       :
+						case ProviderName.SqlServer2012                       :
+						case ProviderName.SqlServer2014                       :
+						case TestProvName.SqlServer2016                       :
+						case ProviderName.SqlServer2017                       :
+						case TestProvName.SqlServer2019                       :
+						case TestProvName.SqlServer2019SequentialAccess       :
+						case TestProvName.SqlServer2019FastExpressionCompiler :
+						case TestProvName.SqlAzure                            : db.DropTable<TestTable>("#" + tableName); break;
+						default                                               : db.DropTable<TestTable>(tableName);       break;
 					}
 				}
 				catch
@@ -100,20 +102,22 @@ namespace Tests.xUpdate
 
 				switch (context)
 				{
-					case ProviderName.SqlServer2008 :
-					case ProviderName.SqlServer2012 :
-					case ProviderName.SqlServer2014 :
-					case TestProvName.SqlServer2016 :
-					case ProviderName.SqlServer2017 :
-					case TestProvName.SqlServer2019 :
-					case TestProvName.SqlAzure      :
+					case ProviderName.SqlServer2008                       :
+					case ProviderName.SqlServer2012                       :
+					case ProviderName.SqlServer2014                       :
+					case TestProvName.SqlServer2016                       :
+					case ProviderName.SqlServer2017                       :
+					case TestProvName.SqlServer2019                       :
+					case TestProvName.SqlServer2019SequentialAccess       :
+					case TestProvName.SqlServer2019FastExpressionCompiler :
+					case TestProvName.SqlAzure                            :
 						table = db.CreateTable<TestTable>("#" + tableName);
 						break;
-					case ProviderName.DB2 :
-					case ProviderName.DB2iSeries :
-						table = db.CreateTable<TestTable>(statementHeader:"DECLARE GLOBAL TEMPORARY TABLE SESSION.{0}");
+					case ProviderName.DB2                                 :
+					case ProviderName.DB2iSeries                          :
+						table = db.CreateTable<TestTable>(statementHeader :"DECLARE GLOBAL TEMPORARY TABLE SESSION.{0}");
 						break;
-					default:
+					default                                               :
 						throw new InvalidOperationException();
 				}
 
@@ -142,14 +146,16 @@ namespace Tests.xUpdate
 				{
 					switch (context)
 					{
-						case ProviderName.SqlServer2008 :
-						case ProviderName.SqlServer2012 :
-						case ProviderName.SqlServer2014 :
-						case TestProvName.SqlServer2016 :
-						case ProviderName.SqlServer2017 :
-						case TestProvName.SqlServer2019 :
-						case TestProvName.SqlAzure      : await db.DropTableAsync<TestTable>("#" + tableName); break;
-						default                         : await db.DropTableAsync<TestTable>(tableName);       break;
+						case ProviderName.SqlServer2008                       :
+						case ProviderName.SqlServer2012                       :
+						case ProviderName.SqlServer2014                       :
+						case TestProvName.SqlServer2016                       :
+						case ProviderName.SqlServer2017                       :
+						case TestProvName.SqlServer2019                       :
+						case TestProvName.SqlServer2019SequentialAccess       :
+						case TestProvName.SqlServer2019FastExpressionCompiler :
+						case TestProvName.SqlAzure                            : await db.DropTableAsync<TestTable>("#" + tableName); break;
+						default                                               : await db.DropTableAsync<TestTable>(tableName);       break;
 					}
 				}
 				catch
@@ -160,20 +166,22 @@ namespace Tests.xUpdate
 
 				switch (context)
 				{
-					case ProviderName.SqlServer2008 :
-					case ProviderName.SqlServer2012 :
-					case ProviderName.SqlServer2014 :
-					case TestProvName.SqlServer2016 :
-					case ProviderName.SqlServer2017 :
-					case TestProvName.SqlServer2019 :
-					case TestProvName.SqlAzure      :
+					case ProviderName.SqlServer2008                                 :
+					case ProviderName.SqlServer2012                                 :
+					case ProviderName.SqlServer2014                                 :
+					case TestProvName.SqlServer2016                                 :
+					case ProviderName.SqlServer2017                                 :
+					case TestProvName.SqlServer2019                                 :
+					case TestProvName.SqlServer2019SequentialAccess                 :
+					case TestProvName.SqlServer2019FastExpressionCompiler           :
+					case TestProvName.SqlAzure                                      :
 						table = await db.CreateTableAsync<TestTable>("#" + tableName);
 						break;
-					case ProviderName.DB2 :
-					case ProviderName.DB2iSeries :
+					case ProviderName.DB2                                           :
+					case ProviderName.DB2iSeries                                    :
 						table = await db.CreateTableAsync<TestTable>(statementHeader:"DECLARE GLOBAL TEMPORARY TABLE SESSION.{0}");
 						break;
-					default:
+					default                                                         :
 						table = await db.CreateTableAsync<TestTable>(tableName);
 						break;
 				}
